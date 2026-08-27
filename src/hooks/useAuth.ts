@@ -5,9 +5,10 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
-import { auth } from "@/src/services/firebase";
+import { auth, db } from "@/src/services/firebase";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -25,7 +26,16 @@ export function useAuth() {
   }
 
   async function register(email: string, password: string) {
-    await createUserWithEmailAndPassword(auth, email, password);
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await setDoc(doc(db, "users", cred.user.uid), {
+      user_id: cred.user.uid,
+      email,
+      role: [],
+      is_active: true,
+      trust_score: 65,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    });
   }
 
   async function logout() {
