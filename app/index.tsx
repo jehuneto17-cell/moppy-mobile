@@ -2,14 +2,17 @@ import { Redirect } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { useAuth } from "@/src/hooks/useAuth";
+import { useCleanerProfile } from "@/src/hooks/useCleanerProfile";
 import { useUserProfile } from "@/src/hooks/useUserProfile";
 import { C, font, space } from "@/src/theme";
 
 export default function SplashScreen() {
   const { user, initializing } = useAuth();
   const { role, loading: profileLoading } = useUserProfile(user?.uid ?? null);
+  const isCleaner = !!role?.includes("cleaner");
+  const { profile: cleanerProfile, loading: cleanerLoading } = useCleanerProfile(isCleaner ? user?.uid ?? null : null);
 
-  if (initializing || (user && profileLoading)) {
+  if (initializing || (user && profileLoading) || (isCleaner && cleanerLoading)) {
     return (
       <View style={styles.container}>
         <Text style={styles.logo}>Moppy</Text>
@@ -21,7 +24,13 @@ export default function SplashScreen() {
 
   if (!user) return <Redirect href="/(auth)/login" />;
   if (!role || role.length === 0) return <Redirect href="/(role-choice)" />;
-  if (role.includes("cleaner")) return <Redirect href="/(cleaner)/buscar" />;
+
+  if (isCleaner) {
+    if (!cleanerProfile) return <Redirect href="/(cleaner-onboarding)/documentos" />;
+    if (cleanerProfile.approval_status !== "approved") return <Redirect href="/(cleaner-onboarding)/aguardando" />;
+    return <Redirect href="/(cleaner)/buscar" />;
+  }
+
   return <Redirect href="/(client)/home" />;
 }
 

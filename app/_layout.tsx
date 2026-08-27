@@ -24,6 +24,7 @@ export default function RootLayout() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(role-choice)" />
       <Stack.Screen name="(client)" />
+      <Stack.Screen name="(cleaner-onboarding)" />
       <Stack.Screen name="(cleaner)" />
     </Stack>
   );

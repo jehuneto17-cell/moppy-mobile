@@ -33,3 +33,14 @@ export function computeOrderPrice(sizeId: string, addonIds: string[], urgencyTie
 
   return { basePrice, extrasPrice, urgencyFee, subtotal, grossTotal, asaasFee, clientFeeShare, netTotalClient };
 }
+
+// Comissão Moppy 15% + metade da taxa Asaas (a outra metade é a "taxa de processamento" do cliente).
+// Fórmula e exemplo exatos vêm de F07 - Detalhe do Pedido: base R$90 -> comissão R$13,50 -> taxa R$1,60 -> líquido R$74,90.
+export function computeCleanerEarnings(grossTotal: number) {
+  const commission = grossTotal * 0.15;
+  const asaasFee = 0.49 + grossTotal * 0.03;
+  const cleanerFeeShare = asaasFee / 2;
+  const cleanerNet = grossTotal - commission - cleanerFeeShare;
+
+  return { commission, cleanerFeeShare, cleanerNet };
+}

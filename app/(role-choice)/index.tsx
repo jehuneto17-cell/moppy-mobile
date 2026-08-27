@@ -23,7 +23,7 @@ export default function RoleChoiceScreen() {
       role: [selected],
       updated_at: serverTimestamp(),
     });
-    router.replace(selected === "client" ? "/(client)/home" : "/(cleaner)/buscar");
+    router.replace(selected === "client" ? "/(client)/home" : "/(cleaner-onboarding)/documentos");
   }
 
   return (
