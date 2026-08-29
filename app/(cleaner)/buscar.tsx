@@ -1,8 +1,10 @@
 import { useRouter } from "expo-router";
 import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { Button } from "@/src/components/ui/Button";
+import { Checkbox } from "@/src/components/ui/Checkbox";
 import { Icon } from "@/src/components/ui/Icon";
 import { Spinner } from "@/src/components/ui/Spinner";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -11,6 +13,33 @@ import { db } from "@/src/services/firebase";
 import { C, font, radius, space } from "@/src/theme";
 import type { Order } from "@/src/types";
 import { computeCleanerEarnings } from "@/src/utils/price";
+
+const CLEAN_TYPES = [
+  { key: "standard", label: "Padrão" },
+  { key: "heavy", label: "Pesada" },
+  { key: "laundry", label: "Passar Roupa" },
+] as const;
+
+const SIZES = [
+  { key: "studio", label: "Studio" },
+  { key: "1q", label: "1 quarto" },
+  { key: "2q", label: "2 quartos" },
+  { key: "3q", label: "3 quartos" },
+  { key: "4q+", label: "4+ quartos" },
+] as const;
+
+const DATE_OPTIONS = [
+  { key: "hoje", label: "Hoje" },
+  { key: "3dias", label: "Próx. 3 dias" },
+  { key: "semana", label: "Próx. semana" },
+] as const;
+
+function withinDateOption(scheduledAt: string, option: (typeof DATE_OPTIONS)[number]["key"]) {
+  const days = option === "hoje" ? 1 : option === "3dias" ? 3 : 7;
+  const limit = new Date();
+  limit.setDate(limit.getDate() + days);
+  return new Date(scheduledAt) <= limit;
+}
 
 const GROUP_LABELS: Record<MyApplication["status"], { title: string; color: string; bg: string; opacity: number }> = {
   pending: { title: "Aguardando escolha", color: C.warning, bg: C.warningBg, opacity: 1 },
@@ -45,10 +74,37 @@ export default function CleanerBuscarScreen() {
 
   const applications = useMyApplications(user?.uid ?? null);
 
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
+  const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
+  const [dateOption, setDateOption] = useState<(typeof DATE_OPTIONS)[number]["key"] | null>(null);
+
+  const filteredOrders = useMemo(() => {
+    if (!orders) return orders;
+    return orders.filter((o) => {
+      if (selectedTypes.size > 0 && !selectedTypes.has(o.service.type)) return false;
+      if (selectedSizes.size > 0 && !selectedSizes.has(o.service.size)) return false;
+      if (dateOption && !withinDateOption(o.scheduled_at, dateOption)) return false;
+      return true;
+    });
+  }, [orders, selectedTypes, selectedSizes, dateOption]);
+
+  const activeFilterCount = selectedTypes.size + selectedSizes.size + (dateOption ? 1 : 0);
+
+  function toggleSet(set: Set<string>, setter: (s: Set<string>) => void, key: string) {
+    const next = new Set(set);
+    next.has(key) ? next.delete(key) : next.add(key);
+    setter(next);
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Trabalhos disponíveis</Text>
+        <Pressable style={styles.filterButton} onPress={() => setShowFilters(true)}>
+          <Icon name="settings" size={16} color={C.purplePrimary} />
+          <Text style={styles.filterButtonText}>Filtros{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}</Text>
+        </Pressable>
       </View>
 
       <View style={styles.tabs}>
@@ -65,22 +121,24 @@ export default function CleanerBuscarScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {tab === "feed" && (
           <>
-            {orders === null && (
+            {filteredOrders === null && (
               <View style={styles.center}>
                 <Spinner />
               </View>
             )}
-            {orders?.length === 0 && (
+            {filteredOrders?.length === 0 && (
               <View style={styles.emptyState}>
                 <View style={styles.emptyIconCircle}>
                   <Icon name="settings" size={32} color={C.purplePrimary} />
                 </View>
-                <Text style={styles.emptyText}>Nenhum pedido na sua região agora. Volte mais tarde.</Text>
+                <Text style={styles.emptyText}>
+                  {activeFilterCount > 0 ? "Nenhum pedido bate com esses filtros." : "Nenhum pedido na sua região agora. Volte mais tarde."}
+                </Text>
               </View>
             )}
-            {orders && orders.length > 0 && (
+            {filteredOrders && filteredOrders.length > 0 && (
               <View style={{ gap: space.m }}>
-                {orders.map((order) => {
+                {filteredOrders.map((order) => {
                   const earnings = computeCleanerEarnings(order.pricing.base_price + order.pricing.extras_price);
                   return (
                     <Pressable key={order.order_id} style={styles.orderCard} onPress={() => router.push(`/(cleaner)/pedido/${order.order_id}`)}>
@@ -154,14 +212,86 @@ export default function CleanerBuscarScreen() {
           </>
         )}
       </ScrollView>
+
+      <Modal visible={showFilters} transparent animationType="slide" onRequestClose={() => setShowFilters(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <ScrollView contentContainerStyle={{ paddingBottom: space.l }}>
+              <Text style={styles.modalTitle}>Filtros</Text>
+
+              <Text style={styles.filterSectionLabel}>Tipo de limpeza</Text>
+              <View style={{ gap: space.m, marginBottom: space.l }}>
+                {CLEAN_TYPES.map((t) => (
+                  <Checkbox key={t.key} label={t.label} checked={selectedTypes.has(t.key)} onChange={() => toggleSet(selectedTypes, setSelectedTypes, t.key)} />
+                ))}
+              </View>
+
+              <Text style={styles.filterSectionLabel}>Tamanho</Text>
+              <View style={{ gap: space.m, marginBottom: space.l }}>
+                {SIZES.map((s) => (
+                  <Checkbox key={s.key} label={s.label} checked={selectedSizes.has(s.key)} onChange={() => toggleSet(selectedSizes, setSelectedSizes, s.key)} />
+                ))}
+              </View>
+
+              <Text style={styles.filterSectionLabel}>Data</Text>
+              <View style={{ flexDirection: "row", gap: space.s, flexWrap: "wrap" }}>
+                {DATE_OPTIONS.map((d) => (
+                  <Pressable
+                    key={d.key}
+                    onPress={() => setDateOption(dateOption === d.key ? null : d.key)}
+                    style={[styles.dateChip, dateOption === d.key && styles.dateChipActive]}
+                  >
+                    <Text style={[styles.dateChipText, dateOption === d.key && styles.dateChipTextActive]}>{d.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <Text style={styles.resultsCount}>{filteredOrders?.length ?? 0} pedidos encontrados</Text>
+              <View style={{ flexDirection: "row", gap: space.s }}>
+                <Button
+                  variant="ghost"
+                  size="large"
+                  style={{ flex: 1 }}
+                  onPress={() => {
+                    setSelectedTypes(new Set());
+                    setSelectedSizes(new Set());
+                    setDateOption(null);
+                  }}
+                >
+                  Limpar
+                </Button>
+                <Button variant="primary" size="large" style={{ flex: 1 }} onPress={() => setShowFilters(false)}>
+                  Aplicar filtros
+                </Button>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.white },
-  header: { paddingHorizontal: space.xxl, paddingTop: space.xxl },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.xxl, paddingTop: space.xxl },
   headerTitle: { fontFamily: font.bold, fontSize: font.h2, color: C.textMaximum },
+  filterButton: { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderColor: C.border, borderRadius: radius.m, paddingVertical: space.s, paddingHorizontal: space.m },
+  filterButtonText: { fontFamily: font.medium, fontSize: font.labelSm, color: C.purplePrimary },
+  modalOverlay: { flex: 1, backgroundColor: "#1F2937AA", justifyContent: "flex-end" },
+  modalSheet: { backgroundColor: "#fff", borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.xxl, maxHeight: "75%" },
+  modalHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: C.borderStrong, alignSelf: "center", marginBottom: space.l },
+  modalTitle: { fontFamily: font.bold, fontSize: font.h3, color: C.textMaximum, marginBottom: space.l },
+  filterSectionLabel: { fontFamily: font.bold, fontSize: font.body, color: C.textMaximum, marginBottom: space.m },
+  dateChip: { paddingVertical: space.s, paddingHorizontal: space.l, borderRadius: 999, borderWidth: 1, borderColor: C.border },
+  dateChipActive: { backgroundColor: C.purpleLight, borderColor: C.purplePrimary },
+  dateChipText: { fontFamily: font.medium, fontSize: font.body, color: C.textMaximum },
+  dateChipTextActive: { color: C.purplePrimary },
+  modalFooter: { borderTopWidth: 1, borderTopColor: C.border, paddingTop: space.l },
+  resultsCount: { fontFamily: font.regular, fontSize: font.labelSm, color: C.textSecondary, textAlign: "center", marginBottom: space.m },
   tabs: { flexDirection: "row", gap: space.xxl, marginTop: space.l, borderBottomWidth: 1, borderBottomColor: C.border, paddingHorizontal: space.xxl },
   tabButton: { paddingBottom: space.m },
   tabText: { fontFamily: font.regular, fontSize: font.body, color: C.textSecondary },

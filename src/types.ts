@@ -32,6 +32,13 @@ export type Order = {
     net_total_client: number;
   };
   status: OrderStatus;
+  card_id?: string;
+  arrival_code?: string;
+  arrival_method?: "code" | "gps_photo" | null;
+  arrived_at?: { seconds: number } | null;
+  cleaner_completed_at?: { seconds: number } | null;
+  confirm_deadline_at?: { seconds: number } | null;
+  client_confirmed_at?: { seconds: number } | null;
   created_at: string;
   updated_at: string;
 };

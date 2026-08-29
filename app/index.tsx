@@ -3,11 +3,13 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { useAuth } from "@/src/hooks/useAuth";
 import { useCleanerProfile } from "@/src/hooks/useCleanerProfile";
+import { useNotifications } from "@/src/hooks/useNotifications";
 import { useUserProfile } from "@/src/hooks/useUserProfile";
 import { C, font, space } from "@/src/theme";
 
 export default function SplashScreen() {
   const { user, initializing } = useAuth();
+  useNotifications();
   const { role, loading: profileLoading } = useUserProfile(user?.uid ?? null);
   const isCleaner = !!role?.includes("cleaner");
   const { profile: cleanerProfile, loading: cleanerLoading } = useCleanerProfile(isCleaner ? user?.uid ?? null : null);

@@ -1,6 +1,9 @@
+import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import * as WebBrowser from "expo-web-browser";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
 import { Button } from "@/src/components/ui/Button";
 import { Checkbox } from "@/src/components/ui/Checkbox";
@@ -10,11 +13,13 @@ import { LabeledInput } from "@/src/components/ui/LabeledInput";
 import { useAuth } from "@/src/hooks/useAuth";
 import { C, font, radius, space } from "@/src/theme";
 
+WebBrowser.maybeCompleteAuthSession();
+
 type Mode = "login" | "cadastro";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, register } = useAuth();
+  const { login, register, loginWithGoogle } = useAuth();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,8 +28,26 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const isLogin = mode === "login";
+
+  const [googleRequest, googleResponse, promptGoogleAsync] = Google.useIdTokenAuthRequest({
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    if (googleResponse?.type !== "success") return;
+
+    const idToken = googleResponse.params.id_token;
+    setGoogleLoading(true);
+    loginWithGoogle(idToken)
+      .then(() => router.replace("/"))
+      .catch((e: any) => setError(mapAuthError(e?.code)))
+      .finally(() => setGoogleLoading(false));
+  }, [googleResponse]);
 
   async function handleSubmit() {
     setError(null);
@@ -119,7 +142,48 @@ export default function LoginScreen() {
           {isLogin ? "Entrar" : "Cadastrar"}
         </Button>
       </View>
+
+      <View style={styles.divider}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>ou</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <Button
+        variant="secondary"
+        size="large"
+        loading={googleLoading}
+        disabled={!googleRequest}
+        icon={<GoogleLogo size={18} />}
+        onPress={() => promptGoogleAsync()}
+        style={{ width: "100%" }}
+      >
+        {isLogin ? "Entrar com o Google" : "Cadastrar com o Google"}
+      </Button>
     </View>
+  );
+}
+
+function GoogleLogo({ size = 18 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        fill="#4285F4"
+        d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.82Z"
+      />
+      <Path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.95-1.07 7.94-2.91l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.28v3.1A12 12 0 0 0 12 24Z"
+      />
+      <Path
+        fill="#FBBC05"
+        d="M5.29 14.3a7.2 7.2 0 0 1 0-4.6v-3.1H1.28a12 12 0 0 0 0 10.8Z"
+      />
+      <Path
+        fill="#EA4335"
+        d="M12 4.75c1.76 0 3.34.61 4.59 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.28 6.6l4.01 3.1C6.23 6.86 8.88 4.75 12 4.75Z"
+      />
+    </Svg>
   );
 }
 
@@ -208,5 +272,22 @@ const styles = StyleSheet.create({
     color: C.purplePrimary,
     textAlign: "right",
     marginTop: 4,
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space.m,
+    marginTop: space.xl,
+    marginBottom: space.l,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E5E7EB",
+  },
+  dividerText: {
+    fontFamily: font.regular,
+    fontSize: font.bodySm,
+    color: C.textSecondary,
   },
 });

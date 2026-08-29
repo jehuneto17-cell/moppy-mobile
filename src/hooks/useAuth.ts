@@ -1,6 +1,9 @@
 import {
   createUserWithEmailAndPassword,
+  getAdditionalUserInfo,
+  GoogleAuthProvider,
   onAuthStateChanged,
+  signInWithCredential,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -38,9 +41,24 @@ export function useAuth() {
     });
   }
 
+  async function loginWithGoogle(idToken: string) {
+    const cred = await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
+    if (getAdditionalUserInfo(cred)?.isNewUser) {
+      await setDoc(doc(db, "users", cred.user.uid), {
+        user_id: cred.user.uid,
+        email: cred.user.email,
+        role: [],
+        is_active: true,
+        trust_score: 65,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+      });
+    }
+  }
+
   async function logout() {
     await signOut(auth);
   }
 
-  return { user, initializing, login, register, logout };
+  return { user, initializing, login, register, loginWithGoogle, logout };
 }

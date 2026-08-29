@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { collection, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, where } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot, query, serverTimestamp, setDoc, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -36,10 +36,24 @@ export default function CleanerPedidoDetalheScreen() {
     return onSnapshot(doc(db, "orders", id), (snap) => setOrder(snap.exists() ? ({ order_id: snap.id, ...snap.data() } as Order) : null));
   }, [id]);
 
+  const isMine = !!order && !!user && order.cleaner_id === user.uid;
+
   useEffect(() => {
-    if (!id || !user) return;
-    getDoc(doc(db, "orders", id, "applications", user.uid)).then((snap) => setAlreadyApplied(snap.exists()));
-  }, [id, user]);
+    if (!id || !user || isMine) return;
+    getDocs(query(collection(db, "orders", id, "applications"), where("cleaner_id", "==", user.uid))).then((snap) => setAlreadyApplied(!snap.empty));
+  }, [id, user, isMine]);
+
+  // Dia do serviço: leva pro fluxo certo conforme o estado (F11 chegada -> F12 andamento -> F13 aguardando -> F14 disputa).
+  useEffect(() => {
+    if (!order || !isMine) return;
+    if (order.status === "in_progress" && !order.cleaner_completed_at) {
+      router.replace(`/(cleaner)/pedido/${order.order_id}/andamento`);
+    } else if (order.status === "in_progress" && order.cleaner_completed_at && !order.client_confirmed_at) {
+      router.replace(`/(cleaner)/pedido/${order.order_id}/aguardando`);
+    } else if (order.status === "disputed") {
+      router.replace(`/(cleaner)/pedido/${order.order_id}/disputa`);
+    }
+  }, [order, isMine]);
 
   async function handleApply() {
     if (!user || !order || alreadyApplied) return;
@@ -92,6 +106,58 @@ export default function CleanerPedidoDetalheScreen() {
 
   const earnings = computeCleanerEarnings(order.pricing.base_price + order.pricing.extras_price);
 
+  if (isMine && order.status === "confirmed") {
+    return (
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={{ padding: space.xxl, paddingBottom: 112 }}>
+          <Text style={styles.title}>
+            {serviceLabel(order.service.type)} · {order.service.size}
+          </Text>
+          <Text style={styles.sub}>{new Date(order.scheduled_at).toLocaleString("pt-BR")}</Text>
+          <Text style={styles.sub}>{order.address.street}, {order.address.number} — {order.address.neighborhood}</Text>
+          <Text style={styles.confirmedNote}>Serviço confirmado. No dia, confirme sua chegada aqui.</Text>
+        </ScrollView>
+        <View style={styles.footer}>
+          <Button variant="primary" size="large" onPress={() => router.push(`/(cleaner)/pedido/${order.order_id}/chegada`)} style={{ width: "100%" }}>
+            Confirmar chegada
+          </Button>
+        </View>
+      </View>
+    );
+  }
+
+  if (isMine && order.status === "completed") {
+    return (
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={{ padding: space.xxl, paddingBottom: 112 }}>
+          <Text style={styles.title}>
+            {serviceLabel(order.service.type)} · {order.service.size}
+          </Text>
+          <Text style={styles.sub}>{new Date(order.scheduled_at).toLocaleString("pt-BR")}</Text>
+          <View style={styles.breakdown}>
+            <View style={styles.row}>
+              <Text style={styles.totalLabel}>Você recebeu</Text>
+              <Text style={styles.totalValue}>{formatPrice(earnings.cleanerNet)}</Text>
+            </View>
+          </View>
+        </ScrollView>
+        <View style={styles.footer}>
+          <Button variant="secondary" size="large" onPress={() => router.push(`/(cleaner)/pedido/${order.order_id}/avaliacao`)} style={{ width: "100%" }}>
+            Avaliar cliente
+          </Button>
+        </View>
+      </View>
+    );
+  }
+
+  if (isMine) {
+    return (
+      <View style={styles.center}>
+        <Spinner />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: space.xxl, paddingBottom: 112 }}>
@@ -136,6 +202,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   title: { fontFamily: font.bold, fontSize: font.h2, color: C.textMaximum, lineHeight: 30 },
   sub: { fontFamily: font.regular, fontSize: font.body, color: C.textSecondary, marginTop: space.s },
+  confirmedNote: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum, marginTop: space.xl, backgroundColor: C.surface, borderRadius: radius.l, padding: space.l },
   breakdown: { marginTop: space.l, backgroundColor: C.surface, borderRadius: radius.l, padding: space.l },
   row: { flexDirection: "row", justifyContent: "space-between", marginTop: space.s },
   rowLabel: { fontFamily: font.regular, fontSize: font.body, color: "#6B7280" },

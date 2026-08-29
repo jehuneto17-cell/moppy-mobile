@@ -24,7 +24,11 @@ export async function createCustomer(customer: { name: string; cpf: string; emai
 }
 
 export async function preauthorize(params: { customerId: string; cardToken: string; amount: number }) {
-  return { preauthId: fakeId("preauth"), status: "preauth_success" as const };
+  // Token especial pra testar o caminho de falha/retry sem precisar de um Asaas real (ver PAYMENT-IMPLEMENTATION.md 5.2).
+  if (params.cardToken === "card_mock_declined") {
+    return { preauthId: null, status: "preauth_failed" as const, error: "card_declined" };
+  }
+  return { preauthId: fakeId("preauth"), status: "preauth_success" as const, error: null as string | null };
 }
 
 export async function capturePayment(params: { preauthId: string; amount: number }) {
