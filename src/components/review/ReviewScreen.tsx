@@ -24,6 +24,7 @@ export function ReviewScreen({ orderId, toUserId, toUserName }: { orderId: strin
     await addDoc(collection(db, "reviews"), {
       order_id: orderId,
       from_user_id: user.uid,
+      from_name: user.displayName ?? null,
       to_user_id: toUserId,
       stars: rating,
       comment,
@@ -48,9 +49,10 @@ export function ReviewScreen({ orderId, toUserId, toUserName }: { orderId: strin
         numberOfLines={5}
         placeholder="Conte como foi a experiência..."
         value={comment}
-        onChangeText={setComment}
+        onChangeText={(t) => setComment(t.slice(0, 500))}
         style={styles.textarea}
       />
+      <Text style={styles.charCount}>{comment.length}/500</Text>
 
       <Button variant="primary" size="large" loading={saving} onPress={handleSubmit} style={{ marginTop: space.xl }}>
         Enviar avaliação
@@ -65,4 +67,5 @@ const styles = StyleSheet.create({
   ratingRow: { alignItems: "center", marginTop: space.xxl, marginBottom: space.xxl },
   label: { fontFamily: font.bold, fontSize: font.body, color: C.textMaximum, marginBottom: space.s },
   textarea: { height: 120, textAlignVertical: "top" },
+  charCount: { fontFamily: font.regular, fontSize: font.caption, color: C.textSecondary, textAlign: "right", marginTop: 4 },
 });

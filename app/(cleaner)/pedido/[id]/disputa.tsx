@@ -1,8 +1,10 @@
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { collection, doc, onSnapshot, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { Alert } from "@/src/components/ui/Alert";
 import { Button } from "@/src/components/ui/Button";
 import { Icon } from "@/src/components/ui/Icon";
 import { Input } from "@/src/components/ui/Input";
@@ -24,6 +26,7 @@ export default function ResponderDisputaScreen() {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [remaining, setRemaining] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -41,10 +44,22 @@ export default function ResponderDisputaScreen() {
   }, [dispute?.response_deadline]);
 
   async function handleAddPhoto() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setError("Precisamos de acesso às fotos pra anexar uma imagem.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.7 });
+    if (result.canceled) return;
+
     setUploading(true);
-    const { url } = await uploadImage(`disputes/${id}`);
-    setPhotos((prev) => [...prev, url]);
-    setUploading(false);
+    try {
+      const { url } = await uploadImage(`disputes/${id}`, result.assets[0].uri);
+      setPhotos((prev) => [...prev, url]);
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function handleSubmit() {
@@ -108,6 +123,8 @@ export default function ResponderDisputaScreen() {
           </Pressable>
         )}
       </View>
+
+      {error && <Alert variant="error">{error}</Alert>}
 
       <Button variant="primary" size="large" disabled={!valid} loading={submitting} onPress={handleSubmit} style={{ marginTop: space.xl }}>
         Enviar resposta

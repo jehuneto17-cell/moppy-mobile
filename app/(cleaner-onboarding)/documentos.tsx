@@ -1,3 +1,4 @@
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -30,10 +31,26 @@ export default function DocumentosScreen() {
   const captured = !!documents[step.key];
 
   async function handleCapture() {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      setShowError(true);
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 0.7,
+      cameraType: step.key === "selfie" ? ImagePicker.CameraType.front : ImagePicker.CameraType.back,
+    });
+    if (result.canceled) return;
+
     setUploading(true);
-    const { url } = await uploadImage(`kyc/${step.key}`);
-    setDocument(step.key, url);
-    setUploading(false);
+    try {
+      const { url } = await uploadImage(`kyc/${step.key}`, result.assets[0].uri);
+      setDocument(step.key, url);
+    } finally {
+      setUploading(false);
+    }
   }
 
   function handleContinue() {
@@ -71,7 +88,7 @@ export default function DocumentosScreen() {
           <>
             <Icon name="camera" size={40} color={C.purplePrimary} />
             <Text style={styles.previewLabel} onPress={handleCapture}>
-              {uploading ? "Enviando..." : "Toque para simular captura"}
+              {uploading ? "Enviando..." : "Toque para tirar foto"}
             </Text>
           </>
         )}

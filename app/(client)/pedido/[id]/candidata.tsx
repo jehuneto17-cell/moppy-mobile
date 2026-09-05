@@ -7,7 +7,7 @@ import { Avatar } from "@/src/components/ui/Avatar";
 import { Button } from "@/src/components/ui/Button";
 import { Rating } from "@/src/components/ui/Rating";
 import { Spinner } from "@/src/components/ui/Spinner";
-import { db } from "@/src/services/firebase";
+import { auth, db } from "@/src/services/firebase";
 import { C, font, radius, space } from "@/src/theme";
 
 type Application = { cleaner_id: string; cleaner_name: string; cleaner_rating: number; cleaner_distance_km: number };
@@ -64,6 +64,16 @@ export default function CandidataScreen() {
       created_at: serverTimestamp(),
     });
 
+    // Se faltar menos de 24h pro serviço, o cron D-1 não vai passar a tempo — cobra
+    // agora (o endpoint decide; sem isso o pedido chegaria ao dia sem cobrança).
+    const idToken = await auth.currentUser?.getIdToken();
+    if (idToken) {
+      await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/orders/${id}/charge`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+      }).catch(() => {});
+    }
+
     setChoosing(false);
     router.replace(`/(client)/pedido/${id}`);
   }
@@ -92,6 +102,7 @@ export default function CandidataScreen() {
           <View style={{ gap: space.m }}>
             {reviews.map((r) => (
               <View key={r.review_id} style={styles.reviewCard}>
+                {r.from_name && <Text style={styles.reviewerName}>{r.from_name}</Text>}
                 <Rating value={r.stars} readonly size="small" />
                 <Text style={styles.reviewComment}>{r.comment}</Text>
               </View>
@@ -118,6 +129,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontFamily: font.bold, fontSize: font.h3, color: C.textMaximum, marginBottom: space.m },
   emptyReviews: { fontFamily: font.regular, fontSize: font.body, color: C.textSecondary },
   reviewCard: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.l, gap: space.s },
+  reviewerName: { fontFamily: font.medium, fontSize: font.body, color: C.textMaximum },
   reviewComment: { fontFamily: font.regular, fontSize: font.bodySm, color: C.textMaximum, lineHeight: 18 },
   footer: { position: "absolute", bottom: 0, left: 0, right: 0, padding: space.l, paddingHorizontal: space.xxl, backgroundColor: C.white, borderTopWidth: 1, borderTopColor: C.border },
 });

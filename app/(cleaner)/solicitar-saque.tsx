@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Alert } from "@/src/components/ui/Alert";
 import { Button } from "@/src/components/ui/Button";
 import { Checkbox } from "@/src/components/ui/Checkbox";
+import { Icon } from "@/src/components/ui/Icon";
 import { LabeledInput } from "@/src/components/ui/LabeledInput";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useCleanerProfile } from "@/src/hooks/useCleanerProfile";
@@ -55,6 +56,9 @@ export default function SolicitarSaqueScreen() {
   if (success) {
     return (
       <View style={styles.center}>
+        <View style={styles.successIconCircle}>
+          <Icon name="check-circle" size={44} color={C.success} />
+        </View>
         <Text style={styles.successTitle}>Solicitado!</Text>
         <Text style={styles.successText}>Cai em 1-2 dias úteis.</Text>
         <Button variant="primary" size="large" onPress={() => router.back()} style={{ marginTop: space.xxl }}>
@@ -121,6 +125,7 @@ const styles = StyleSheet.create({
   pixValue: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
   pixWarning: { fontFamily: font.regular, fontSize: font.labelSm, color: C.error, marginTop: 4 },
   footerNote: { fontFamily: font.regular, fontSize: font.bodySm, color: C.textSecondary },
-  successTitle: { fontFamily: font.bold, fontSize: font.h2, color: C.success },
+  successIconCircle: { width: 96, height: 96, borderRadius: 48, backgroundColor: C.successBg, alignItems: "center", justifyContent: "center" },
+  successTitle: { fontFamily: font.bold, fontSize: font.h2, color: C.success, marginTop: space.xl },
   successText: { fontFamily: font.regular, fontSize: font.body, color: C.textSecondary, marginTop: space.s },
 });

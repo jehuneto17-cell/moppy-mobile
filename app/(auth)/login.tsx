@@ -2,7 +2,7 @@ import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { Button } from "@/src/components/ui/Button";
@@ -76,7 +76,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>Moppy</Text>
+      <Image source={require("@/assets/images/logo-full.png")} style={styles.logo} resizeMode="contain" />
 
       <View style={styles.tabs}>
         <Pressable style={[styles.tab, isLogin && styles.tabActive]} onPress={() => setMode("login")}>
@@ -212,10 +212,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logo: {
-    fontFamily: font.bold,
-    fontSize: font.h2,
-    color: C.purplePrimary,
-    textAlign: "center",
+    width: 56,
+    height: 56,
+    alignSelf: "center",
     marginTop: space.xxl,
     marginBottom: space.xxxl,
   },

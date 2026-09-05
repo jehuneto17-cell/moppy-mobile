@@ -8,6 +8,7 @@ import { Button } from "@/src/components/ui/Button";
 import { Icon } from "@/src/components/ui/Icon";
 import { Rating } from "@/src/components/ui/Rating";
 import { Spinner } from "@/src/components/ui/Spinner";
+import { useUserProfile } from "@/src/hooks/useUserProfile";
 import { db } from "@/src/services/firebase";
 import { C, font, space } from "@/src/theme";
 import type { Order } from "@/src/types";
@@ -16,6 +17,7 @@ export default function AguardandoConfirmacaoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
+  const { profile: clientProfile } = useUserProfile(order?.client_id ?? null);
   const [remaining, setRemaining] = useState(0);
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function AguardandoConfirmacaoScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.iconCircle, { backgroundColor: isDone ? C.successBg : C.successBg }]}>
+      <View style={[styles.iconCircle, { backgroundColor: C.successBg }]}>
         <Icon name="check-circle" size={44} color={C.success} />
       </View>
 
@@ -72,9 +74,9 @@ export default function AguardandoConfirmacaoScreen() {
           </View>
 
           <View style={styles.clientCard}>
-            <Avatar name="Cliente" size="medium" />
+            <Avatar name={clientProfile?.name ?? "Cliente"} size="medium" />
             <View style={{ flex: 1 }}>
-              <Text style={styles.clientName}>{order.address.neighborhood}</Text>
+              <Text style={styles.clientName}>{clientProfile?.name ?? "Cliente"}</Text>
               <Rating value={5} readonly size="small" />
             </View>
           </View>

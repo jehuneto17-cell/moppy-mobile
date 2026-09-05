@@ -1,3 +1,4 @@
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -25,10 +26,22 @@ export default function AbrirDisputaScreen() {
   const [error, setError] = useState<string | null>(null);
 
   async function handleAddPhoto(slot: number) {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setError("Precisamos de acesso às fotos pra anexar uma imagem.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.7 });
+    if (result.canceled) return;
+
     setUploadingSlot(slot);
-    const { url } = await uploadImage(`disputes/${id}`);
-    setPhotos((prev) => [...prev, url]);
-    setUploadingSlot(null);
+    try {
+      const { url } = await uploadImage(`disputes/${id}`, result.assets[0].uri);
+      setPhotos((prev) => [...prev, url]);
+    } finally {
+      setUploadingSlot(null);
+    }
   }
 
   async function handleSubmit() {

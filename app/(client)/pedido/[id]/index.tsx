@@ -40,13 +40,17 @@ function buildTimeline(stage: Stage) {
   const idx = order.indexOf(stage);
   const items = [
     { key: "confirmado", title: "Pedido confirmado" },
+    { key: "chegando", title: "Faxineira chegando" },
     { key: "em_servico", title: "Em serviço" },
     { key: "concluido", title: "Pendente de confirmação" },
   ];
+  // "confirmado" e "chegando" viram completos juntos: não há um timestamp separado de
+  // "saiu a caminho" no schema, só arrived_at (que já move o stage pra em_servico).
+  const stepIdx = idx === 0 ? 0 : idx + 1;
   return items.map((item, i) => ({
     ...item,
-    complete: i < idx,
-    active: i === idx,
+    complete: i < stepIdx,
+    active: i === stepIdx,
     showConnector: i < items.length - 1,
   }));
 }

@@ -18,7 +18,7 @@ export default function PagamentoScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { cards } = useCards(user?.uid ?? null);
-  const { address, serviceType, size, addonIds, scheduledDate, scheduledTime, urgencyTier, cardId, setCardId, reset } = useCreateOrderStore();
+  const { address, serviceType, size, addonIds, scheduledDate, scheduledTime, urgencyTier, cardId, notes, setCardId, reset } = useCreateOrderStore();
   const [selectedCardId, setSelectedCardId] = useState<string | null>(cardId);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,6 +34,7 @@ export default function PagamentoScreen() {
 
       const docRef = await addDoc(collection(db, "orders"), {
         client_id: user.uid,
+        client_name: user.displayName ?? null,
         cleaner_id: null,
         address: {
           street: address.street,
@@ -43,6 +44,8 @@ export default function PagamentoScreen() {
           city: address.city,
           state: address.state,
           postal_code: address.postal_code,
+          lat: address.lat ?? null,
+          lng: address.lng ?? null,
         },
         service: {
           type: serviceType,
@@ -60,6 +63,7 @@ export default function PagamentoScreen() {
         },
         status: "draft",
         card_id: selectedCardId,
+        notes: notes.trim() || null,
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
       });
@@ -69,8 +73,11 @@ export default function PagamentoScreen() {
       await updateDoc(doc(db, "orders", docRef.id), { status: "open", updated_at: serverTimestamp() });
 
       setCardId(selectedCardId);
+      router.replace({
+        pathname: "/(client)/criar-pedido/confirmacao",
+        params: { orderId: docRef.id, total: price.netTotalClient.toFixed(2), serviceType, size, scheduledDate, scheduledTime },
+      });
       reset();
-      router.replace({ pathname: "/(client)/criar-pedido/confirmacao", params: { orderId: docRef.id, total: price.netTotalClient.toFixed(2) } });
     } catch {
       setError(true);
     } finally {

@@ -5,9 +5,25 @@ import { Button } from "@/src/components/ui/Button";
 import { Icon } from "@/src/components/ui/Icon";
 import { C, font, radius, space } from "@/src/theme";
 
+const SIZE_LABEL: Record<string, string> = { studio: "Studio", "1q": "1 quarto", "2q": "2 quartos", "3q": "3 quartos", "4q+": "4+ quartos" };
+const TYPE_LABEL: Record<string, string> = { standard: "Limpeza Padrão", heavy: "Limpeza Pesada", laundry: "Passar Roupas" };
+
+function formatDateTime(date?: string, time?: string) {
+  if (!date || !time) return "-";
+  const [, month, day] = date.split("-");
+  return `${day}/${month}, ${time.replace(":", "h")}`;
+}
+
 export default function ConfirmacaoScreen() {
   const router = useRouter();
-  const { orderId, total } = useLocalSearchParams<{ orderId: string; total: string }>();
+  const { orderId, total, serviceType, size, scheduledDate, scheduledTime } = useLocalSearchParams<{
+    orderId: string;
+    total: string;
+    serviceType?: string;
+    size?: string;
+    scheduledDate?: string;
+    scheduledTime?: string;
+  }>();
 
   return (
     <View style={styles.container}>
@@ -20,6 +36,18 @@ export default function ConfirmacaoScreen() {
 
       <View style={styles.summaryBox}>
         <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabelMuted}>Tipo</Text>
+          <Text style={styles.summaryValue}>{TYPE_LABEL[serviceType ?? ""] ?? "-"}</Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabelMuted}>Tamanho</Text>
+          <Text style={styles.summaryValue}>{SIZE_LABEL[size ?? ""] ?? "-"}</Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabelMuted}>Data/hora</Text>
+          <Text style={styles.summaryValue}>{formatDateTime(scheduledDate, scheduledTime)}</Text>
+        </View>
+        <View style={[styles.summaryRow, styles.summaryTotalRow]}>
           <Text style={styles.summaryLabel}>Total</Text>
           <Text style={styles.summaryValueBold}>R$ {total?.replace(".", ",")}</Text>
         </View>
@@ -27,7 +55,7 @@ export default function ConfirmacaoScreen() {
 
       <View style={styles.buttons}>
         <Button variant="primary" size="large" onPress={() => router.replace(`/(client)/pedido/${orderId}`)} style={{ flex: 1 }}>
-          Ver detalhes
+          Ver detalhes do pedido
         </Button>
         <Button variant="secondary" size="large" onPress={() => router.replace("/(client)/home")} style={{ flex: 1 }}>
           Voltar para Home
@@ -51,8 +79,11 @@ const styles = StyleSheet.create({
   },
   title: { fontFamily: font.bold, fontSize: font.h2, color: C.textMaximum, textAlign: "center", marginBottom: space.m },
   subtitle: { fontFamily: font.regular, fontSize: font.body, color: C.textSecondary, textAlign: "center", lineHeight: 22, marginBottom: space.xxl },
-  summaryBox: { width: "100%", backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.l, marginBottom: space.l },
+  summaryBox: { width: "100%", backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.l, gap: space.s, marginBottom: space.l },
   summaryRow: { flexDirection: "row", justifyContent: "space-between" },
+  summaryTotalRow: { paddingTop: space.s, borderTopWidth: 1, borderTopColor: C.border },
+  summaryLabelMuted: { fontFamily: font.regular, fontSize: font.labelSm, color: C.textSecondary },
+  summaryValue: { fontFamily: font.regular, fontSize: font.labelSm, color: C.textMaximum },
   summaryLabel: { fontFamily: font.medium, fontSize: font.labelSm, color: C.textMaximum },
   summaryValueBold: { fontFamily: font.bold, fontSize: font.labelSm, color: C.textMaximum },
   buttons: { flexDirection: "row", gap: space.m, width: "100%", marginTop: space.s },

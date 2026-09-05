@@ -1,3 +1,4 @@
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useRef, useState } from "react";
@@ -44,10 +45,26 @@ export default function ConfirmarChegadaScreen() {
   }
 
   async function handleTakeSelfie() {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      setError("Precisamos de acesso à câmera pra tirar a selfie.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 0.7,
+      cameraType: ImagePicker.CameraType.front,
+    });
+    if (result.canceled) return;
+
     setUploadingPhoto(true);
-    const { url } = await uploadImage(`arrival/${id}`);
-    setPhotoUrl(url);
-    setUploadingPhoto(false);
+    try {
+      const { url } = await uploadImage(`arrival/${id}`, result.assets[0].uri);
+      setPhotoUrl(url);
+    } finally {
+      setUploadingPhoto(false);
+    }
   }
 
   async function handleConfirm() {

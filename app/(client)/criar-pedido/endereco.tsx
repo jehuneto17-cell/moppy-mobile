@@ -1,8 +1,9 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Alert } from "@/src/components/ui/Alert";
+import { AddressMapPreview } from "@/src/components/ui/AddressMapPreview";
 import { Card } from "@/src/components/ui/Card";
 import { Icon } from "@/src/components/ui/Icon";
 import { LabeledInput } from "@/src/components/ui/LabeledInput";
@@ -10,6 +11,7 @@ import { Button } from "@/src/components/ui/Button";
 import { WizardShell } from "@/src/components/wizard/WizardShell";
 import { useAddresses, type Address } from "@/src/hooks/useAddresses";
 import { useAuth } from "@/src/hooks/useAuth";
+import { geocodeAddress } from "@/src/services/mapbox";
 import { useCreateOrderStore } from "@/src/store/createOrderStore";
 import { C, font, space } from "@/src/theme";
 
@@ -17,12 +19,29 @@ export default function EnderecoScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { addresses, addAddress } = useAddresses(user?.uid ?? null);
-  const { address, setAddress } = useCreateOrderStore();
+  const { address, setAddress, notes, setNotes } = useCreateOrderStore();
   const [selectedId, setSelectedId] = useState<string | null>(address?.address_id ?? null);
   const [showForm, setShowForm] = useState(addresses.length === 0);
   const [showError, setShowError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ street: "", number: "", complement: "", neighborhood: "", city: "", state: "", postal_code: "" });
+  const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
+
+  const formFilled = form.street && form.number && form.neighborhood && form.city && form.state && form.postal_code;
+
+  // Geocodifica com debounce enquanto o cliente digita o endereço novo, só pra atualizar o preview do pin.
+  useEffect(() => {
+    if (!formFilled) {
+      setPin(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      const coords = await geocodeAddress(form);
+      setPin(coords.lat != null && coords.lng != null ? { lat: coords.lat, lng: coords.lng } : null);
+    }, 600);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.street, form.number, form.neighborhood, form.city, form.state, form.postal_code]);
 
   async function handleSaveAddress() {
     if (!user) return;
@@ -80,6 +99,7 @@ export default function EnderecoScreen() {
           <LabeledInput label="Cidade" value={form.city} onChangeText={(v) => setForm({ ...form, city: v })} />
           <LabeledInput label="UF" value={form.state} onChangeText={(v) => setForm({ ...form, state: v })} maxLength={2} autoCapitalize="characters" />
           <LabeledInput label="CEP" value={form.postal_code} onChangeText={(v) => setForm({ ...form, postal_code: v })} keyboardType="numeric" />
+          <AddressMapPreview lat={pin?.lat} lng={pin?.lng} />
           <Button variant="secondary" loading={saving} onPress={handleSaveAddress}>
             Salvar endereço
           </Button>
@@ -91,6 +111,18 @@ export default function EnderecoScreen() {
           <Alert variant="error">Selecione um endereço para continuar.</Alert>
         </View>
       )}
+
+      <View style={{ marginTop: space.xl }}>
+        <LabeledInput
+          label="Observações (opcional)"
+          placeholder="Ex: portão azul, cachorro no quintal, interfone quebrado..."
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+          numberOfLines={3}
+          style={{ height: 72, textAlignVertical: "top" }}
+        />
+      </View>
     </WizardShell>
   );
 }

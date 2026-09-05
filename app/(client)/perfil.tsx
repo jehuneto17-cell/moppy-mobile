@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -31,9 +32,10 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
 }
 
 export default function ClientPerfilScreen() {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const { profile } = useUserProfile(user?.uid ?? null);
-  const { addresses } = useAddresses(user?.uid ?? null);
+  const { addresses, addAddress } = useAddresses(user?.uid ?? null);
   const { cards } = useCards(user?.uid ?? null);
 
   const [open, setOpen] = useState<SectionId | null>("personal");
@@ -42,6 +44,18 @@ export default function ClientPerfilScreen() {
   const [saving, setSaving] = useState(false);
   const [pushEnabled, setPushEnabled] = useState((profile as any)?.notifications_push_enabled ?? true);
   const [emailEnabled, setEmailEnabled] = useState((profile as any)?.notifications_email_enabled ?? false);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [addressForm, setAddressForm] = useState({ street: "", number: "", complement: "", neighborhood: "", city: "", state: "", postal_code: "" });
+
+  async function handleSaveAddress() {
+    if (!user) return;
+    setSavingAddress(true);
+    await addAddress(user.uid, addressForm);
+    setSavingAddress(false);
+    setShowAddressForm(false);
+    setAddressForm({ street: "", number: "", complement: "", neighborhood: "", city: "", state: "", postal_code: "" });
+  }
 
   async function handleSavePersonal() {
     if (!user) return;
@@ -100,6 +114,27 @@ export default function ClientPerfilScreen() {
                     </View>
                   ))}
                   {addresses.length === 0 && <Text style={styles.emptyText}>Nenhum endereço salvo ainda.</Text>}
+
+                  {!showAddressForm && (
+                    <Pressable onPress={() => setShowAddressForm(true)}>
+                      <Text style={styles.addLink}>+ Adicionar novo</Text>
+                    </Pressable>
+                  )}
+
+                  {showAddressForm && (
+                    <View style={{ gap: space.m, marginTop: space.s }}>
+                      <LabeledInput label="Rua" value={addressForm.street} onChangeText={(v) => setAddressForm({ ...addressForm, street: v })} />
+                      <LabeledInput label="Número" value={addressForm.number} onChangeText={(v) => setAddressForm({ ...addressForm, number: v })} />
+                      <LabeledInput label="Complemento (opcional)" value={addressForm.complement} onChangeText={(v) => setAddressForm({ ...addressForm, complement: v })} />
+                      <LabeledInput label="Bairro" value={addressForm.neighborhood} onChangeText={(v) => setAddressForm({ ...addressForm, neighborhood: v })} />
+                      <LabeledInput label="Cidade" value={addressForm.city} onChangeText={(v) => setAddressForm({ ...addressForm, city: v })} />
+                      <LabeledInput label="UF" value={addressForm.state} onChangeText={(v) => setAddressForm({ ...addressForm, state: v })} maxLength={2} autoCapitalize="characters" />
+                      <LabeledInput label="CEP" value={addressForm.postal_code} onChangeText={(v) => setAddressForm({ ...addressForm, postal_code: v })} keyboardType="numeric" />
+                      <Button variant="secondary" loading={savingAddress} onPress={handleSaveAddress}>
+                        Salvar endereço
+                      </Button>
+                    </View>
+                  )}
                 </View>
               )}
 
@@ -114,6 +149,10 @@ export default function ClientPerfilScreen() {
                     </View>
                   ))}
                   {cards.length === 0 && <Text style={styles.emptyText}>Nenhum cartão salvo ainda.</Text>}
+
+                  <Pressable onPress={() => router.push("/(client)/criar-pedido/novo-cartao")}>
+                    <Text style={styles.addLink}>+ Novo cartão</Text>
+                  </Pressable>
                 </View>
               )}
 
@@ -158,6 +197,7 @@ const styles = StyleSheet.create({
   listItem: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.m },
   listItemText: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum, flex: 1 },
   emptyText: { fontFamily: font.regular, fontSize: font.bodySm, color: C.textSecondary },
+  addLink: { fontFamily: font.medium, fontSize: font.body, color: C.purplePrimary, marginTop: space.xs },
   toggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   toggleLabel: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
   track: { width: 40, height: 22, borderRadius: 999, backgroundColor: C.border, padding: 2, justifyContent: "center" },

@@ -3,9 +3,11 @@ export type OrderStatus = "draft" | "open" | "confirmed" | "in_progress" | "comp
 export type Order = {
   order_id: string;
   client_id: string;
+  client_name?: string;
   cleaner_id: string | null;
   cleaner_name?: string;
   cleaner_rating?: number;
+  notes?: string;
   address: {
     street: string;
     number: string;

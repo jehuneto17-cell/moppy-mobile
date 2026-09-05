@@ -1,23 +1,23 @@
 import { Redirect } from "expo-router";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
 
 import { useAuth } from "@/src/hooks/useAuth";
 import { useCleanerProfile } from "@/src/hooks/useCleanerProfile";
 import { useNotifications } from "@/src/hooks/useNotifications";
 import { useUserProfile } from "@/src/hooks/useUserProfile";
-import { C, font, space } from "@/src/theme";
+import { font, space } from "@/src/theme";
 
 export default function SplashScreen() {
   const { user, initializing } = useAuth();
   useNotifications();
-  const { role, loading: profileLoading } = useUserProfile(user?.uid ?? null);
+  const { profile: userProfile, role, loading: profileLoading } = useUserProfile(user?.uid ?? null);
   const isCleaner = !!role?.includes("cleaner");
   const { profile: cleanerProfile, loading: cleanerLoading } = useCleanerProfile(isCleaner ? user?.uid ?? null : null);
 
   if (initializing || (user && profileLoading) || (isCleaner && cleanerLoading)) {
     return (
       <View style={styles.container}>
-        <Text style={styles.logo}>Moppy</Text>
+        <Image source={require("@/assets/images/icon.png")} style={styles.logo} resizeMode="contain" />
         <ActivityIndicator color="#fff" style={{ marginTop: space.xxxl }} />
         <Text style={styles.version}>v1.0.0</Text>
       </View>
@@ -33,20 +33,20 @@ export default function SplashScreen() {
     return <Redirect href="/(cleaner)/buscar" />;
   }
 
+  if (!userProfile?.client_terms_accepted) return <Redirect href="/(client-onboarding)/endereco" />;
   return <Redirect href="/(client)/home" />;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: C.purplePrimary,
+    backgroundColor: "#7C3AED",
     alignItems: "center",
     justifyContent: "center",
   },
   logo: {
-    fontFamily: font.bold,
-    fontSize: font.h1,
-    color: "#fff",
+    width: 96,
+    height: 96,
   },
   version: {
     position: "absolute",

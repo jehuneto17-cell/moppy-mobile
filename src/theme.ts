@@ -4,6 +4,7 @@ export const C = {
   purpleDark: "#9368F7",
   purpleLight: "#E9D5FF",
   purpleVeryDark: "#6B21A8",
+  purpleStrong: "#7C3AED", // roxo usado no handoff pra ícones/badges/links/timer — mais forte que purplePrimary
   white: "#FFFFFF",
   surface: "#F9FAFB",
   border: "#E5E7EB",

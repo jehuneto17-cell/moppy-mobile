@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import * as Location from "expo-location";
 import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -12,7 +13,28 @@ import { useMyApplications, type MyApplication } from "@/src/hooks/useMyApplicat
 import { db } from "@/src/services/firebase";
 import { C, font, radius, space } from "@/src/theme";
 import type { Order } from "@/src/types";
+import { distanceKm } from "@/src/utils/geo";
 import { computeCleanerEarnings } from "@/src/utils/price";
+
+// Melhor-esforço: sem permissão ou fora de um dispositivo com GPS, a distância simplesmente não aparece no card.
+function useCleanerPosition() {
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") return;
+        const pos = await Location.getCurrentPositionAsync({});
+        setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      } catch {
+        // sem GPS/permissão — feed segue funcionando sem o badge de distância
+      }
+    })();
+  }, []);
+
+  return position;
+}
 
 const CLEAN_TYPES = [
   { key: "standard", label: "Padrão" },
@@ -65,6 +87,7 @@ export default function CleanerBuscarScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const [tab, setTab] = useState<"feed" | "candidaturas">("feed");
+  const cleanerPosition = useCleanerPosition();
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   useEffect(() => {
@@ -140,6 +163,10 @@ export default function CleanerBuscarScreen() {
               <View style={{ gap: space.m }}>
                 {filteredOrders.map((order) => {
                   const earnings = computeCleanerEarnings(order.pricing.base_price + order.pricing.extras_price);
+                  const distance =
+                    cleanerPosition && order.address.lat != null && order.address.lng != null
+                      ? distanceKm(cleanerPosition, { lat: order.address.lat, lng: order.address.lng })
+                      : null;
                   return (
                     <Pressable key={order.order_id} style={styles.orderCard} onPress={() => router.push(`/(cleaner)/pedido/${order.order_id}`)}>
                       <View style={styles.orderCardTop}>
@@ -151,6 +178,11 @@ export default function CleanerBuscarScreen() {
                             {order.address.neighborhood} · {formatWhen(order.scheduled_at)}
                           </Text>
                         </View>
+                        {distance != null && (
+                          <View style={styles.distanceBadge}>
+                            <Text style={styles.distanceBadgeText}>{distance.toFixed(1)} km</Text>
+                          </View>
+                        )}
                       </View>
                       <View style={styles.orderPriceRow}>
                         <Text style={styles.orderGross}>{formatPrice(order.pricing.gross_total)}</Text>
@@ -306,6 +338,8 @@ const styles = StyleSheet.create({
   orderCardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: space.s },
   orderTitle: { fontFamily: font.bold, fontSize: font.h3, color: C.textMaximum, lineHeight: 25 },
   orderSub: { fontFamily: font.regular, fontSize: font.labelSm, color: C.textSecondary, marginTop: 2 },
+  distanceBadge: { backgroundColor: "#F3E8FF", borderRadius: radius.pill, paddingVertical: 2, paddingHorizontal: space.s, flexShrink: 0 },
+  distanceBadgeText: { fontFamily: font.medium, fontSize: font.labelSm, color: C.purpleStrong },
   orderPriceRow: { flexDirection: "row", alignItems: "baseline", gap: 6 },
   orderGross: { fontFamily: font.medium, fontSize: font.body, color: C.textMaximum },
   orderNet: { fontFamily: font.regular, fontSize: font.labelSm, color: C.purplePrimary },

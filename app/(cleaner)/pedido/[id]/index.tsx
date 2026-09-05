@@ -167,6 +167,13 @@ export default function CleanerPedidoDetalheScreen() {
         <Text style={styles.sub}>{new Date(order.scheduled_at).toLocaleString("pt-BR")}</Text>
         <Text style={styles.sub}>{order.address.neighborhood}</Text>
 
+        {order.notes && (
+          <View style={styles.notesBox}>
+            <Text style={styles.notesLabel}>Sobre o pedido</Text>
+            <Text style={styles.notesText}>{order.notes}</Text>
+          </View>
+        )}
+
         <View style={styles.breakdown}>
           <View style={styles.row}>
             <Text style={styles.rowLabel}>Valor do serviço</Text>
@@ -203,6 +210,9 @@ const styles = StyleSheet.create({
   title: { fontFamily: font.bold, fontSize: font.h2, color: C.textMaximum, lineHeight: 30 },
   sub: { fontFamily: font.regular, fontSize: font.body, color: C.textSecondary, marginTop: space.s },
   confirmedNote: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum, marginTop: space.xl, backgroundColor: C.surface, borderRadius: radius.l, padding: space.l },
+  notesBox: { marginTop: space.l, backgroundColor: C.surface, borderRadius: radius.l, padding: space.l },
+  notesLabel: { fontFamily: font.medium, fontSize: font.bodySm, color: C.textSecondary, marginBottom: space.xs },
+  notesText: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum, lineHeight: 20 },
   breakdown: { marginTop: space.l, backgroundColor: C.surface, borderRadius: radius.l, padding: space.l },
   row: { flexDirection: "row", justifyContent: "space-between", marginTop: space.s },
   rowLabel: { fontFamily: font.regular, fontSize: font.body, color: "#6B7280" },

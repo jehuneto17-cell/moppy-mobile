@@ -101,14 +101,17 @@ export default function CleanerPerfilScreen() {
               {isOpen && section.id === "documents" && (
                 <View style={styles.sectionBody}>
                   {Object.entries(DOC_LABELS).map(([key, label]) => {
-                    const submitted = !!cleanerProfile?.documents?.[key as "id_document" | "cpf_document" | "selfie" | "address_proof"];
+                    const doc = cleanerProfile?.documents?.[key as "id_document" | "cpf_document" | "selfie" | "address_proof"];
+                    const badge = !doc
+                      ? { label: "Pendente", bg: C.warningBg, color: C.warningDark }
+                      : doc.verified
+                        ? { label: "Aprovado", bg: C.successBg, color: C.successDark }
+                        : { label: "Em análise", bg: C.warningBg, color: C.warningDark };
                     return (
                       <View key={key} style={styles.docRow}>
                         <Text style={styles.docLabel}>{label}</Text>
-                        <View style={[styles.docBadge, { backgroundColor: submitted ? C.successBg : C.warningBg }]}>
-                          <Text style={{ fontFamily: font.regular, fontSize: font.labelSm, color: submitted ? C.successDark : C.warningDark }}>
-                            {submitted ? "Enviado" : "Pendente"}
-                          </Text>
+                        <View style={[styles.docBadge, { backgroundColor: badge.bg }]}>
+                          <Text style={{ fontFamily: font.regular, fontSize: font.labelSm, color: badge.color }}>{badge.label}</Text>
                         </View>
                       </View>
                     );

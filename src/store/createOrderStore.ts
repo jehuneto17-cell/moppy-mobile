@@ -15,6 +15,7 @@ type CreateOrderState = {
   scheduledTime: string | null;
   urgencyTier: UrgencyTier;
   cardId: string | null;
+  notes: string;
 
   setAddress: (a: Address) => void;
   setServiceType: (t: ServiceType) => void;
@@ -23,6 +24,7 @@ type CreateOrderState = {
   setSchedule: (date: string, time: string) => void;
   setUrgencyTier: (t: UrgencyTier) => void;
   setCardId: (id: string) => void;
+  setNotes: (notes: string) => void;
   reset: () => void;
 };
 
@@ -35,6 +37,7 @@ const initialState = {
   scheduledTime: null,
   urgencyTier: "normal" as UrgencyTier,
   cardId: null,
+  notes: "",
 };
 
 export const useCreateOrderStore = create<CreateOrderState>((set) => ({
@@ -49,5 +52,6 @@ export const useCreateOrderStore = create<CreateOrderState>((set) => ({
   setSchedule: (scheduledDate, scheduledTime) => set({ scheduledDate, scheduledTime }),
   setUrgencyTier: (urgencyTier) => set({ urgencyTier }),
   setCardId: (cardId) => set({ cardId }),
+  setNotes: (notes) => set({ notes }),
   reset: () => set(initialState),
 }));

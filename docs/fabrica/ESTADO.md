@@ -8,7 +8,8 @@ Etapa 8 — Implementação, Bloco 9 (Contas Reais) em andamento.
 
 ## Pendências deste repo (moppy-mobile)
 
-- [ ] Cloudinary real — trocar mock (`shared/mocks/cloudinary.ts`) por conta real. Usado em: foto de chegada, foto de disputa, documentos do cadastro da faxineira (`(cleaner-onboarding)/documentos.tsx`)
+- [x] Cloudinary real — implementado e testado em 2026-09-04 (ver ESTADO.md do admin)
+- [x] Firebase real — `.env.local` já aponta pro projeto real `moppy-4ae68` com `EXPO_PUBLIC_USE_FIREBASE_EMULATOR=false` (confirmado em `src/services/firebase.ts`); falta só testar login + chamada autenticada ponta a ponta pela UI
 - [ ] EAS Build — configurar `eas.json`, gerar primeiro `.apk`/`.aab` pra testar/publicar na Play Store
 
 ## Não é daqui

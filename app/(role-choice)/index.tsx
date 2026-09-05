@@ -23,7 +23,7 @@ export default function RoleChoiceScreen() {
       role: [selected],
       updated_at: serverTimestamp(),
     });
-    router.replace(selected === "client" ? "/(client)/home" : "/(cleaner-onboarding)/documentos");
+    router.replace(selected === "client" ? "/(client-onboarding)/endereco" : "/(cleaner-onboarding)/documentos");
   }
 
   return (

@@ -11,6 +11,11 @@ import { C, font, space } from "@/src/theme";
 
 type Message = { message_id: string; sender_id: string; text: string; created_at: { seconds: number } | null };
 
+function formatTime(created_at: Message["created_at"]) {
+  if (!created_at) return "";
+  return new Date(created_at.seconds * 1000).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
 // Chat (C22/F18) — mesma UI dos dois lados, o chatId é sempre o orderId (1 chat por pedido).
 export function ChatScreen({ orderId, peerName }: { orderId: string; peerName: string }) {
   const { user } = useAuth();
@@ -66,6 +71,7 @@ export function ChatScreen({ orderId, peerName }: { orderId: string; peerName: s
               <View style={[styles.bubble, sent ? styles.bubbleSent : styles.bubbleReceived]}>
                 <Text style={[styles.bubbleText, { color: sent ? "#fff" : C.textMaximum }]}>{msg.text}</Text>
               </View>
+              <Text style={styles.timestamp}>{formatTime(msg.created_at)}</Text>
             </View>
           );
         })}
@@ -80,7 +86,7 @@ export function ChatScreen({ orderId, peerName }: { orderId: string; peerName: s
           onChangeText={setDraft}
         />
         <Pressable style={styles.sendButton} onPress={handleSend}>
-          <Icon name="chevron-right" size={18} color="#fff" />
+          <Icon name="send" size={16} color="#fff" />
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -102,6 +108,7 @@ const styles = StyleSheet.create({
   bubbleSent: { backgroundColor: C.purplePrimary, borderBottomRightRadius: 4 },
   bubbleReceived: { backgroundColor: C.surface, borderBottomLeftRadius: 4 },
   bubbleText: { fontFamily: font.regular, fontSize: font.body },
+  timestamp: { fontFamily: font.regular, fontSize: 11, color: C.textSecondary, marginTop: 2 },
   inputRow: { flexDirection: "row", alignItems: "center", gap: space.s, padding: space.l, borderTopWidth: 1, borderTopColor: C.border },
   input: { flex: 1, borderWidth: 1, borderColor: C.border, borderRadius: 20, paddingVertical: space.s, paddingHorizontal: space.l, fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
   sendButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.purplePrimary, alignItems: "center", justifyContent: "center" },

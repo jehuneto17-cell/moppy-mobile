@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { Alert } from "@/src/components/ui/Alert";
 import { Button } from "@/src/components/ui/Button";
 import { LabeledInput } from "@/src/components/ui/LabeledInput";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -15,20 +16,27 @@ export default function NovoCartaoScreen() {
   const { addCard } = useCards(user?.uid ?? null);
   const [form, setForm] = useState({ number: "", holderName: "", expiryMonth: "", expiryYear: "", cvv: "" });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
     if (!user) return;
     setSaving(true);
-    const tokenized = await tokenizeCard({
-      number: form.number,
-      holderName: form.holderName,
-      expiryMonth: Number(form.expiryMonth),
-      expiryYear: Number(form.expiryYear),
-      cvv: form.cvv,
-    });
-    await addCard(user.uid, { token: tokenized.token, brand: tokenized.brand, last_four: tokenized.lastFour, holder_name: form.holderName });
-    setSaving(false);
-    router.back();
+    setError(null);
+    try {
+      const tokenized = await tokenizeCard({
+        number: form.number,
+        holderName: form.holderName,
+        expiryMonth: Number(form.expiryMonth),
+        expiryYear: Number(form.expiryYear),
+        cvv: form.cvv,
+      });
+      await addCard(user.uid, { token: tokenized.token, brand: tokenized.brand, last_four: tokenized.lastFour, holder_name: form.holderName });
+      router.back();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Falha ao cadastrar cartão");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -50,6 +58,12 @@ export default function NovoCartaoScreen() {
           </View>
         </View>
       </View>
+
+      {error && (
+        <View style={{ marginTop: space.l }}>
+          <Alert variant="error">{error}</Alert>
+        </View>
+      )}
 
       <Button variant="primary" size="large" loading={saving} onPress={handleSave} style={{ marginTop: space.xxl }}>
         Salvar cartão

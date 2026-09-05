@@ -11,6 +11,7 @@ export type UserProfile = {
   name?: string;
   role: UserRole[];
   trust_score?: number;
+  client_terms_accepted?: boolean;
 };
 
 export function useUserProfile(uid: string | null) {

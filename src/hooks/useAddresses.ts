@@ -2,6 +2,7 @@ import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from 
 import { useEffect, useState } from "react";
 
 import { db } from "@/src/services/firebase";
+import { geocodeAddress } from "@/src/services/mapbox";
 
 export type Address = {
   address_id: string;
@@ -12,6 +13,8 @@ export type Address = {
   city: string;
   state: string;
   postal_code: string;
+  lat?: number;
+  lng?: number;
 };
 
 export function useAddresses(uid: string | null) {
@@ -31,9 +34,11 @@ export function useAddresses(uid: string | null) {
     });
   }, [uid]);
 
-  async function addAddress(uid: string, address: Omit<Address, "address_id">) {
+  async function addAddress(uid: string, address: Omit<Address, "address_id" | "lat" | "lng">) {
+    const coords = await geocodeAddress(address);
     await addDoc(collection(db, "users", uid, "addresses"), {
       ...address,
+      ...coords,
       created_at: serverTimestamp(),
     });
   }
