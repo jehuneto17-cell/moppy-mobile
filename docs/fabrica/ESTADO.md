@@ -10,7 +10,7 @@ Etapa 8 — Implementação, Bloco 9 (Contas Reais) em andamento.
 
 - [x] Cloudinary real — implementado e testado em 2026-09-04 (ver ESTADO.md do admin)
 - [x] Firebase real — `.env.local` já aponta pro projeto real `moppy-4ae68` com `EXPO_PUBLIC_USE_FIREBASE_EMULATOR=false` (confirmado em `src/services/firebase.ts`); falta só testar login + chamada autenticada ponta a ponta pela UI
-- [ ] EAS Build — configurar `eas.json`, gerar primeiro `.apk`/`.aab` pra testar/publicar na Play Store
+- [x] EAS Build — `eas.json` com perfil `development` (dev client, apk) e `production` (app-bundle, autoIncrement) + `submit`. Primeiro APK de dev gerado e testado num emulador real (ver ESTADO.md do admin, 2026-09-05). Falta gerar o primeiro `.aab` de produção de verdade (`eas build --profile production`) — ainda não rodado.
 
 ## Não é daqui
 

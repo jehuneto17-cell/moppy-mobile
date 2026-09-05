@@ -44,17 +44,52 @@ export default function NovoCartaoScreen() {
       <Text style={styles.title}>Adicionar cartão</Text>
 
       <View style={{ gap: space.m }}>
-        <LabeledInput label="Número do cartão" keyboardType="numeric" value={form.number} onChangeText={(v) => setForm({ ...form, number: v })} />
-        <LabeledInput label="Nome no cartão" value={form.holderName} onChangeText={(v) => setForm({ ...form, holderName: v })} />
+        <LabeledInput
+          label="Número do cartão"
+          keyboardType="numeric"
+          autoComplete="cc-number"
+          textContentType="creditCardNumber"
+          value={form.number}
+          onChangeText={(v) => setForm({ ...form, number: v })}
+        />
+        <LabeledInput
+          label="Nome no cartão"
+          autoComplete="cc-name"
+          textContentType="name"
+          value={form.holderName}
+          onChangeText={(v) => setForm({ ...form, holderName: v })}
+        />
         <View style={{ flexDirection: "row", gap: space.m }}>
           <View style={{ flex: 1 }}>
-            <LabeledInput label="Mês" keyboardType="numeric" maxLength={2} value={form.expiryMonth} onChangeText={(v) => setForm({ ...form, expiryMonth: v })} />
+            <LabeledInput
+              label="Mês"
+              keyboardType="numeric"
+              maxLength={2}
+              autoComplete="cc-exp-month"
+              value={form.expiryMonth}
+              onChangeText={(v) => setForm({ ...form, expiryMonth: v })}
+            />
           </View>
           <View style={{ flex: 1 }}>
-            <LabeledInput label="Ano" keyboardType="numeric" maxLength={4} value={form.expiryYear} onChangeText={(v) => setForm({ ...form, expiryYear: v })} />
+            <LabeledInput
+              label="Ano"
+              keyboardType="numeric"
+              maxLength={4}
+              autoComplete="cc-exp-year"
+              value={form.expiryYear}
+              onChangeText={(v) => setForm({ ...form, expiryYear: v })}
+            />
           </View>
           <View style={{ flex: 1 }}>
-            <LabeledInput label="CVV" keyboardType="numeric" maxLength={4} value={form.cvv} onChangeText={(v) => setForm({ ...form, cvv: v })} />
+            <LabeledInput
+              label="CVV"
+              keyboardType="numeric"
+              maxLength={4}
+              autoComplete="cc-csc"
+              textContentType="none"
+              value={form.cvv}
+              onChangeText={(v) => setForm({ ...form, cvv: v })}
+            />
           </View>
         </View>
       </View>
