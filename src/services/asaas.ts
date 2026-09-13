@@ -39,7 +39,7 @@ export async function tokenizeCard(card: {
       phone: card.phone,
     }),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Falha ao cadastrar cartão");
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data) throw new Error(data?.error ?? "Falha ao cadastrar cartão");
   return { token: data.token as string, lastFour: data.lastFour as string, brand: data.brand as string };
 }

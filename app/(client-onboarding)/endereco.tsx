@@ -7,6 +7,7 @@ import { Button } from "@/src/components/ui/Button";
 import { LabeledInput } from "@/src/components/ui/LabeledInput";
 import { useAddresses } from "@/src/hooks/useAddresses";
 import { useAuth } from "@/src/hooks/useAuth";
+import { lookupCep } from "@/src/services/cep";
 import { geocodeAddress } from "@/src/services/mapbox";
 import { C, font, space } from "@/src/theme";
 
@@ -19,6 +20,21 @@ export default function OnboardingEnderecoScreen() {
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
 
   const requiredFilled = form.street && form.number && form.neighborhood && form.city && form.state && form.postal_code;
+
+  // Assim que o CEP fica completo (8 dígitos), busca rua/bairro/cidade/UF no ViaCEP
+  // e preenche automaticamente. Melhor-esforço: CEP inválido ou API fora do ar não
+  // preenche nada, cliente continua digitando manualmente.
+  useEffect(() => {
+    if (form.postal_code.replace(/\D/g, "").length !== 8) return;
+    let cancelled = false;
+    lookupCep(form.postal_code).then((result) => {
+      if (cancelled || !result) return;
+      setForm((f) => ({ ...f, street: result.street || f.street, neighborhood: result.neighborhood || f.neighborhood, city: result.city, state: result.state }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [form.postal_code]);
 
   // Geocodifica com debounce enquanto o cliente digita, só pra atualizar o preview do pin.
   useEffect(() => {
