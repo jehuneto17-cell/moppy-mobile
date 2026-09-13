@@ -9,6 +9,8 @@ if (token) Mapbox.setAccessToken(token);
 // Preview estático (sem gestos) do endereço digitado — usado nas telas de
 // cadastro de endereço (C04 e "criar pedido"). Some sozinho se ainda não tem
 // coordenada (endereço não geocodificado ainda) ou se falta o token.
+// Usa MarkerView (não PointAnnotation) porque a implementação web do
+// @rnmapbox/maps não exporta PointAnnotation — só MapView, Camera e MarkerView.
 export function AddressMapPreview({ lat, lng }: { lat?: number | null; lng?: number | null }) {
   if (!token || lat == null || lng == null) return null;
 
@@ -16,11 +18,11 @@ export function AddressMapPreview({ lat, lng }: { lat?: number | null; lng?: num
     <View style={styles.container}>
       <Mapbox.MapView style={styles.map} scrollEnabled={false} zoomEnabled={false} pitchEnabled={false} rotateEnabled={false} logoEnabled={false} attributionEnabled={false}>
         <Mapbox.Camera centerCoordinate={[lng, lat]} zoomLevel={15} animationDuration={0} />
-        <Mapbox.PointAnnotation id="address-pin" coordinate={[lng, lat]}>
+        <Mapbox.MarkerView coordinate={[lng, lat]}>
           <View style={styles.pinOuter}>
             <View style={styles.pinInner} />
           </View>
-        </Mapbox.PointAnnotation>
+        </Mapbox.MarkerView>
       </Mapbox.MapView>
     </View>
   );
