@@ -3,6 +3,7 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "rewrites": [
+    { "source": "/rewritetest", "destination": "/home.html" },
     { "source": "/pedido/:id", "destination": "/pedido/[id]/index.html" },
     { "source": "/pedido/:id/:screen", "destination": "/pedido/[id]/:screen.html" }
   ]
