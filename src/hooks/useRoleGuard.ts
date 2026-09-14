@@ -35,7 +35,7 @@ export function useRoleGuard(required: "client" | "cleaner") {
   if (!user) return { ready: false as const, redirect: "/(auth)/login" as const };
   if (!role || role.length === 0) return { ready: false as const, redirect: "/(role-choice)" as const };
 
-  console.log("[DEBUG guard]", { required, pathname, isSharedOrderRoute, isCleaner, role });
+  console.log("[DEBUG guard] " + JSON.stringify({ required, pathname, isSharedOrderRoute, isCleaner, role }));
 
   if (required === "cleaner") {
     if (!isCleaner) return isSharedOrderRoute ? { ready: true as const, redirect: null } : { ready: false as const, redirect: "/" as const };
