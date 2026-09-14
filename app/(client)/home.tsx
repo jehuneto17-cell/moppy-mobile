@@ -111,7 +111,7 @@ export default function ClientHomeScreen() {
               <Circle cx={15} cy={12} r={1} fill={C.border} />
             </Svg>
             <Text style={styles.stateText}>Você ainda não tem pedidos. Crie o primeiro e receba propostas em minutos.</Text>
-            <Button variant="primary" size="large" onPress={() => router.push("/(client)/criar-pedido")}>
+            <Button variant="primary" size="large" onPress={() => router.push("/(client)/criar-pedido/endereco")}>
               Criar meu primeiro pedido
             </Button>
           </View>
@@ -153,7 +153,7 @@ export default function ClientHomeScreen() {
       </ScrollView>
 
       {!isEmpty && (
-        <Pressable style={styles.fab} onPress={() => router.push("/(client)/criar-pedido")}>
+        <Pressable style={styles.fab} onPress={() => router.push("/(client)/criar-pedido/endereco")}>
           <Icon name="plus" size={24} color="#fff" strokeWidth={2.5} />
         </Pressable>
       )}

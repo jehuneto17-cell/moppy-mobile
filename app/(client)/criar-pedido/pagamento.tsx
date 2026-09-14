@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Alert } from "@/src/components/ui/Alert";
 import { Card } from "@/src/components/ui/Card";
+import { CardBrandBadge } from "@/src/components/ui/CardBrandBadge";
 import { Icon } from "@/src/components/ui/Icon";
 import { WizardShell } from "@/src/components/wizard/WizardShell";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -20,11 +21,20 @@ export default function PagamentoScreen() {
   const { cards } = useCards(user?.uid ?? null);
   const { address, serviceType, size, addonIds, scheduledDate, scheduledTime, urgencyTier, cardId, notes, setCardId, reset } = useCreateOrderStore();
   const [selectedCardId, setSelectedCardId] = useState<string | null>(cardId);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | false>(false);
   const [loading, setLoading] = useState(false);
 
   async function handleConfirm() {
-    if (!selectedCardId || !user || !address || !serviceType || !size || !scheduledDate || !scheduledTime) return;
+    if (!selectedCardId) return setError("Selecione um cartão para continuar.");
+    if (!user) return setError("Sua sessão expirou. Faça login de novo.");
+    if (!address || !serviceType || !size || !scheduledDate || !scheduledTime) {
+      // Estado da wizard (Zustand em memória, sem persistência) se perdeu — geralmente
+      // por recarregar a página no meio do fluxo. Manda de volta pro início do pedido
+      // em vez de deixar o botão "Confirmar" sem fazer nada.
+      setError("Alguma informação do pedido se perdeu. Vamos recomeçar essa parte.");
+      setTimeout(() => router.replace("/(client)/criar-pedido/endereco"), 1500);
+      return;
+    }
     setLoading(true);
     setError(false);
 
@@ -79,7 +89,7 @@ export default function PagamentoScreen() {
       });
       reset();
     } catch {
-      setError(true);
+      setError("Não foi possível confirmar o pedido. Tente de novo.");
     } finally {
       setLoading(false);
     }
@@ -95,9 +105,7 @@ export default function PagamentoScreen() {
           <View key={c.card_id}>
             <Card state={selectedCardId === c.card_id ? "selected" : "normal"} onPress={() => setSelectedCardId(c.card_id)}>
               <View style={styles.row}>
-                <View style={styles.brandBadge}>
-                  <Text style={styles.brandText}>{c.brand.toUpperCase()}</Text>
-                </View>
+                <CardBrandBadge brand={c.brand} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardNumber}>•••• {c.last_four}</Text>
                   <Text style={styles.cardHolder}>{c.holder_name}</Text>
@@ -120,7 +128,7 @@ export default function PagamentoScreen() {
 
       {error && (
         <View style={{ marginTop: space.l }}>
-          <Alert variant="error">Não foi possível confirmar o pedido. Tente de novo.</Alert>
+          <Alert variant="error">{error}</Alert>
         </View>
       )}
     </WizardShell>
@@ -131,8 +139,6 @@ const styles = StyleSheet.create({
   title: { fontFamily: font.bold, fontSize: font.h2, color: C.textMaximum, marginBottom: space.xxl },
   sectionLabel: { fontFamily: font.medium, fontSize: font.body, color: C.textMaximum, marginBottom: space.m },
   row: { flexDirection: "row", alignItems: "center", gap: space.m },
-  brandBadge: { width: 44, height: 28, borderRadius: 4, backgroundColor: "#F3E8FF", alignItems: "center", justifyContent: "center" },
-  brandText: { fontFamily: font.bold, fontSize: 7, color: C.purplePrimary },
   cardNumber: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
   cardHolder: { fontFamily: font.regular, fontSize: font.labelSm, color: C.textSecondary },
   addLink: { fontFamily: font.medium, fontSize: font.body, color: C.purplePrimary, marginTop: space.l },
