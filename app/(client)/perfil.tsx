@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Button } from "@/src/components/ui/Button";
 import { Icon } from "@/src/components/ui/Icon";
 import { LabeledInput } from "@/src/components/ui/LabeledInput";
+import { RoleGuardScreen } from "@/src/components/ui/RoleGuardScreen";
 import { useAddresses } from "@/src/hooks/useAddresses";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useCards } from "@/src/hooks/useCards";
@@ -90,6 +91,7 @@ export default function ClientPerfilScreen() {
   }
 
   return (
+    <RoleGuardScreen required="client">
     <ScrollView style={styles.container} contentContainerStyle={{ padding: space.xxl }}>
       <Text style={styles.title}>Seu Perfil</Text>
 
@@ -195,6 +197,7 @@ export default function ClientPerfilScreen() {
         })}
       </View>
     </ScrollView>
+    </RoleGuardScreen>
   );
 }
 

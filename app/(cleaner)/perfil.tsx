@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Button } from "@/src/components/ui/Button";
 import { Icon } from "@/src/components/ui/Icon";
 import { LabeledInput } from "@/src/components/ui/LabeledInput";
+import { RoleGuardScreen } from "@/src/components/ui/RoleGuardScreen";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useCleanerProfile } from "@/src/hooks/useCleanerProfile";
 import { useUserProfile } from "@/src/hooks/useUserProfile";
@@ -91,6 +92,7 @@ export default function CleanerPerfilScreen() {
   }
 
   return (
+    <RoleGuardScreen required="cleaner">
     <ScrollView style={styles.container} contentContainerStyle={{ padding: space.xxl }}>
       <Text style={styles.title}>Perfil e Configurações</Text>
 
@@ -193,6 +195,7 @@ export default function CleanerPerfilScreen() {
         })}
       </View>
     </ScrollView>
+    </RoleGuardScreen>
   );
 }
 

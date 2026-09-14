@@ -7,6 +7,7 @@ import Svg, { Circle, Path, Rect } from "react-native-svg";
 import { Avatar } from "@/src/components/ui/Avatar";
 import { Button } from "@/src/components/ui/Button";
 import { Icon } from "@/src/components/ui/Icon";
+import { RoleGuardScreen } from "@/src/components/ui/RoleGuardScreen";
 import { Spinner } from "@/src/components/ui/Spinner";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useUserProfile } from "@/src/hooks/useUserProfile";
@@ -68,6 +69,7 @@ export default function ClientHomeScreen() {
   const greetingName = profile?.name || user?.email?.split("@")[0] || "";
 
   return (
+    <RoleGuardScreen required="client">
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={{ marginBottom: space.xxl }}>
@@ -158,6 +160,7 @@ export default function ClientHomeScreen() {
         </Pressable>
       )}
     </View>
+    </RoleGuardScreen>
   );
 }
 

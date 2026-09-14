@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Icon } from "@/src/components/ui/Icon";
+import { RoleGuardScreen } from "@/src/components/ui/RoleGuardScreen";
 import { Spinner } from "@/src/components/ui/Spinner";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useWallet } from "@/src/hooks/useWallet";
@@ -32,6 +33,7 @@ export default function CleanerCarteiraScreen() {
   const isEmpty = (balance?.total ?? 0) === 0 && transactions.length === 0;
 
   return (
+    <RoleGuardScreen required="cleaner">
     <ScrollView style={styles.container} contentContainerStyle={{ padding: space.xxl }}>
       <Text style={styles.label}>Saldo total</Text>
       <Text style={styles.total}>{money(balance?.total ?? 0)}</Text>
@@ -76,6 +78,7 @@ export default function CleanerCarteiraScreen() {
         </View>
       )}
     </ScrollView>
+    </RoleGuardScreen>
   );
 }
 

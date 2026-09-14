@@ -7,6 +7,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import { Button } from "@/src/components/ui/Button";
 import { Checkbox } from "@/src/components/ui/Checkbox";
 import { Icon } from "@/src/components/ui/Icon";
+import { RoleGuardScreen } from "@/src/components/ui/RoleGuardScreen";
 import { Spinner } from "@/src/components/ui/Spinner";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMyApplications, type MyApplication } from "@/src/hooks/useMyApplications";
@@ -121,6 +122,7 @@ export default function CleanerBuscarScreen() {
   }
 
   return (
+    <RoleGuardScreen required="cleaner">
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Trabalhos disponíveis</Text>
@@ -304,6 +306,7 @@ export default function CleanerBuscarScreen() {
         </View>
       </Modal>
     </View>
+    </RoleGuardScreen>
   );
 }
 

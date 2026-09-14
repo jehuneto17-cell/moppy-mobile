@@ -1,22 +1,9 @@
-import { Redirect, Tabs } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { Tabs } from "expo-router";
 
 import { Icon } from "@/src/components/ui/Icon";
-import { useRoleGuard } from "@/src/hooks/useRoleGuard";
 import { C, font } from "@/src/theme";
 
 export default function CleanerTabsLayout() {
-  const { ready, redirect } = useRoleGuard("cleaner");
-
-  if (!ready) {
-    if (redirect) return <Redirect href={redirect} />;
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: C.white }}>
-        <ActivityIndicator color={C.purplePrimary} />
-      </View>
-    );
-  }
-
   return (
     <Tabs
       screenOptions={{

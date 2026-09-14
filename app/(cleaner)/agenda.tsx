@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Icon } from "@/src/components/ui/Icon";
+import { RoleGuardScreen } from "@/src/components/ui/RoleGuardScreen";
 import { Spinner } from "@/src/components/ui/Spinner";
 import { useAuth } from "@/src/hooks/useAuth";
 import { db } from "@/src/services/firebase";
@@ -43,6 +44,7 @@ export default function CleanerAgendaScreen() {
   }, [user]);
 
   return (
+    <RoleGuardScreen required="cleaner">
     <View style={styles.container}>
       <Text style={styles.title}>Sua agenda</Text>
 
@@ -84,6 +86,7 @@ export default function CleanerAgendaScreen() {
         )}
       </ScrollView>
     </View>
+    </RoleGuardScreen>
   );
 }
 
