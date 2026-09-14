@@ -1,11 +1,17 @@
 import { Tabs } from "expo-router";
 
 import { Icon } from "@/src/components/ui/Icon";
-import { C } from "@/src/theme";
+import { C, font } from "@/src/theme";
 
 export default function ClientTabsLayout() {
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: C.purplePrimary, headerShown: false }}>
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: C.purplePrimary,
+        headerShown: false,
+        tabBarLabelStyle: { fontFamily: font.medium, fontSize: font.caption },
+      }}
+    >
       <Tabs.Screen
         name="home"
         options={{
