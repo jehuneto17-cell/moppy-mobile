@@ -1,5 +1,9 @@
 {
   "buildCommand": "npx expo export -p web",
   "outputDirectory": "dist",
-  "cleanUrls": true
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/pedido/:id", "destination": "/pedido/[id]/index.html" },
+    { "source": "/pedido/:id/:screen", "destination": "/pedido/[id]/:screen.html" }
+  ]
 }
