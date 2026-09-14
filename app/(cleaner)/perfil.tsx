@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Button } from "@/src/components/ui/Button";
@@ -53,6 +53,20 @@ export default function CleanerPerfilScreen() {
   const [saving, setSaving] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(false);
+
+  // profile/cleanerProfile chegam assíncronos (onSnapshot) — os useState acima já
+  // rodaram com eles ainda nulos na 1ª renderização, então os campos ficavam
+  // sempre em branco mesmo com o dado salvo. Sincroniza assim que carregam.
+  useEffect(() => {
+    if (!profile) return;
+    setName(profile.name ?? "");
+    setPhone((profile as any).phone ?? "");
+  }, [profile]);
+
+  useEffect(() => {
+    if (!cleanerProfile) return;
+    setPixKey(cleanerProfile.pix?.key_value ?? "");
+  }, [cleanerProfile]);
 
   async function handleSavePersonal() {
     if (!user) return;

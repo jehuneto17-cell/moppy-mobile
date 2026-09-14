@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Button } from "@/src/components/ui/Button";
@@ -47,6 +47,17 @@ export default function ClientPerfilScreen() {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
   const [addressForm, setAddressForm] = useState({ street: "", number: "", complement: "", neighborhood: "", city: "", state: "", postal_code: "" });
+
+  // profile chega assíncrono (onSnapshot) — os useState acima já rodaram com
+  // profile ainda nulo na 1ª renderização, então os campos ficavam sempre em
+  // branco mesmo com o dado salvo. Sincroniza assim que o profile carrega.
+  useEffect(() => {
+    if (!profile) return;
+    setName(profile.name ?? "");
+    setPhone((profile as any).phone ?? "");
+    setPushEnabled((profile as any).notifications_push_enabled ?? true);
+    setEmailEnabled((profile as any).notifications_email_enabled ?? false);
+  }, [profile]);
 
   async function handleSaveAddress() {
     if (!user) return;
