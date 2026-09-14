@@ -9,6 +9,7 @@ export default function ClientTabsLayout() {
       screenOptions={{
         tabBarActiveTintColor: C.purplePrimary,
         headerShown: false,
+        tabBarLabelPosition: "beside-icon",
         tabBarLabelStyle: { fontFamily: font.medium, fontSize: font.caption },
       }}
     >
