@@ -1,10 +1,11 @@
 {
   "buildCommand": "npx expo export -p web",
   "outputDirectory": "dist",
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/rewritetest", "destination": "/home.html" },
-    { "source": "/pedido/:id", "destination": "/pedido/[id]/index.html" },
-    { "source": "/pedido/:id/:screen", "destination": "/pedido/[id]/:screen.html" }
+  "routes": [
+    { "src": "^/rewritetest$", "dest": "/home.html" },
+    { "src": "^/pedido/([^/]+)/([^/]+)$", "dest": "/pedido/[id]/$2.html" },
+    { "src": "^/pedido/([^/]+)$", "dest": "/pedido/[id]/index.html" },
+    { "handle": "filesystem" },
+    { "src": "^/(.*[^/])$", "dest": "/$1.html", "check": true }
   ]
 }
