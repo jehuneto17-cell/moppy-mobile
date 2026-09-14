@@ -29,6 +29,7 @@ export default function EnderecoScreen() {
   // na 1ª renderização e o formulário ficava aberto até pra quem já tinha
   // endereço salvo. Só decide depois que o carregamento termina.
   useEffect(() => {
+    console.log("[DEBUG endereco]", { addressesLoading, addressesLength: addresses.length, showForm });
     if (!addressesLoading && addresses.length === 0) setShowForm(true);
   }, [addressesLoading, addresses.length]);
   const [showError, setShowError] = useState(false);
