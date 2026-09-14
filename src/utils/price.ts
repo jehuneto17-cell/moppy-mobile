@@ -19,7 +19,10 @@ export const URGENCY_FEE: Record<string, number> = {
   alta: 5.5,
 };
 
-// Taxa Asaas: R$0,49 fixo + 3% do subtotal (PAYMENT-FLOW.md secão 3.3).
+// Taxa Asaas: R$0,49 fixo + 1,99% do subtotal — valor atual conferido direto no
+// formulário "Criar cobrança" do painel Asaas em 2026-09-13 ("Taxa de 1,99% sobre
+// o valor da cobrança + R$0,49") e validado com uma simulação real de R$100 →
+// líquido R$97,52. PAYMENT-FLOW.md secão 3.3 ainda cita 3%, desatualizado.
 // Cliente paga metade dessa taxa ("taxa de processamento"), a outra metade sai do repasse da faxineira.
 export function computeOrderPrice(sizeId: string, addonIds: string[], urgencyTier: string) {
   const basePrice = SIZE_BASE_PRICE[sizeId] ?? 0;
@@ -27,7 +30,7 @@ export function computeOrderPrice(sizeId: string, addonIds: string[], urgencyTie
   const urgencyFee = URGENCY_FEE[urgencyTier] ?? 0;
   const subtotal = basePrice + extrasPrice;
   const grossTotal = subtotal + urgencyFee;
-  const asaasFee = 0.49 + grossTotal * 0.03;
+  const asaasFee = 0.49 + grossTotal * 0.0199;
   const clientFeeShare = asaasFee / 2;
   const netTotalClient = grossTotal + clientFeeShare;
 
@@ -35,12 +38,15 @@ export function computeOrderPrice(sizeId: string, addonIds: string[], urgencyTie
 }
 
 // Comissão Moppy 15% + metade da taxa Asaas (a outra metade é a "taxa de processamento" do cliente).
-// Fórmula e exemplo exatos vêm de F07 - Detalhe do Pedido: base R$90 -> comissão R$13,50 -> taxa R$1,60 -> líquido R$74,90.
-export function computeCleanerEarnings(grossTotal: number) {
-  const commission = grossTotal * 0.15;
-  const asaasFee = 0.49 + grossTotal * 0.03;
+// Espelha computeSplit() do moppy-admin (lib/split.ts) — tem que dar o MESMO número, senão a
+// faxineira vê um líquido aqui e recebe outro na carteira. Comissão incide sobre o subtotal;
+// a taxa do Asaas incide sobre o que passou no cartão (subtotal + metade da taxa), não sobre o subtotal.
+export function computeCleanerEarnings(subtotal: number) {
+  const commission = subtotal * 0.15;
+  const grossCharged = subtotal + (0.49 + subtotal * 0.0199) / 2;
+  const asaasFee = 0.49 + grossCharged * 0.0199;
   const cleanerFeeShare = asaasFee / 2;
-  const cleanerNet = grossTotal - commission - cleanerFeeShare;
+  const cleanerNet = subtotal - commission - cleanerFeeShare;
 
   return { commission, cleanerFeeShare, cleanerNet };
 }
