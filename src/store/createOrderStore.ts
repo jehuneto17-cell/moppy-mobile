@@ -1,4 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 import type { Address } from "@/src/hooks/useAddresses";
 
@@ -40,18 +42,27 @@ const initialState = {
   notes: "",
 };
 
-export const useCreateOrderStore = create<CreateOrderState>((set) => ({
-  ...initialState,
-  setAddress: (address) => set({ address }),
-  setServiceType: (serviceType) => set({ serviceType }),
-  setSize: (size) => set({ size }),
-  toggleAddon: (id) =>
-    set((s) => ({
-      addonIds: s.addonIds.includes(id) ? s.addonIds.filter((x) => x !== id) : [...s.addonIds, id],
-    })),
-  setSchedule: (scheduledDate, scheduledTime) => set({ scheduledDate, scheduledTime }),
-  setUrgencyTier: (urgencyTier) => set({ urgencyTier }),
-  setCardId: (cardId) => set({ cardId }),
-  setNotes: (notes) => set({ notes }),
-  reset: () => set(initialState),
-}));
+// Persistido (AsyncStorage/localStorage) pra sobreviver a recarregamentos no meio
+// da wizard — na web, o Chrome pode descartar/recarregar uma aba parada em segundo
+// plano por muito tempo, o que zerava esse estado (só em memória) e mandava o
+// cliente de volta pro passo 1 sem aviso.
+export const useCreateOrderStore = create<CreateOrderState>()(
+  persist(
+    (set) => ({
+      ...initialState,
+      setAddress: (address) => set({ address }),
+      setServiceType: (serviceType) => set({ serviceType }),
+      setSize: (size) => set({ size }),
+      toggleAddon: (id) =>
+        set((s) => ({
+          addonIds: s.addonIds.includes(id) ? s.addonIds.filter((x) => x !== id) : [...s.addonIds, id],
+        })),
+      setSchedule: (scheduledDate, scheduledTime) => set({ scheduledDate, scheduledTime }),
+      setUrgencyTier: (urgencyTier) => set({ urgencyTier }),
+      setCardId: (cardId) => set({ cardId }),
+      setNotes: (notes) => set({ notes }),
+      reset: () => set(initialState),
+    }),
+    { name: "moppy-create-order", storage: createJSONStorage(() => AsyncStorage) }
+  )
+);
