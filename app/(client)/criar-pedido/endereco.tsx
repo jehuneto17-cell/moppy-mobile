@@ -22,16 +22,16 @@ export default function EnderecoScreen() {
   const { addresses, addAddress, loading: addressesLoading } = useAddresses(user?.uid ?? null);
   const { address, setAddress, notes, setNotes } = useCreateOrderStore();
   const [selectedId, setSelectedId] = useState<string | null>(address?.address_id ?? null);
-  const [showForm, setShowForm] = useState(false);
-
-  // addresses chega assíncrono (onSnapshot) — começa como [] até carregar de
-  // verdade, então "addresses.length === 0" no useState acima sempre dava true
-  // na 1ª renderização e o formulário ficava aberto até pra quem já tinha
-  // endereço salvo. Só decide depois que o carregamento termina.
-  useEffect(() => {
-    console.log("[DEBUG endereco]", { addressesLoading, addressesLength: addresses.length, showForm });
-    if (!addressesLoading && addresses.length === 0) setShowForm(true);
-  }, [addressesLoading, addresses.length]);
+  // null = sem escolha manual do cliente ainda — nesse caso o formulário segue
+  // o dado atual (aberto só se, depois de carregar, não houver endereço nenhum).
+  // Guardar isso como um useState travado (addresses.length === 0 na 1ª
+  // renderização, ou um efeito que só roda uma vez) quebrava: o Firestore às
+  // vezes entrega um primeiro snapshot vazio (cache local) antes do endereço
+  // real chegar, e a decisão "trava" nesse instante errado. Derivado assim, o
+  // formulário sempre reflete o dado mais recente, e só um clique explícito do
+  // cliente (+ Adicionar / salvar) muda esse comportamento.
+  const [manualShowForm, setManualShowForm] = useState<boolean | null>(null);
+  const showForm = manualShowForm ?? (!addressesLoading && addresses.length === 0);
   const [showError, setShowError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ street: "", number: "", complement: "", neighborhood: "", city: "", state: "", postal_code: "" });
@@ -73,7 +73,7 @@ export default function EnderecoScreen() {
     setSaving(true);
     await addAddress(user.uid, form);
     setSaving(false);
-    setShowForm(false);
+    setManualShowForm(false);
   }
 
   function handleContinue() {
@@ -110,7 +110,7 @@ export default function EnderecoScreen() {
       </View>
 
       {!showForm && (
-        <Pressable onPress={() => setShowForm(true)}>
+        <Pressable onPress={() => setManualShowForm(true)}>
           <Text style={styles.addLink}>+ Adicionar novo endereço</Text>
         </Pressable>
       )}
