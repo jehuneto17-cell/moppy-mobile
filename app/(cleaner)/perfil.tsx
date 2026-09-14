@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -77,13 +77,16 @@ export default function CleanerPerfilScreen() {
 
   async function handleSaveRadius(km: number) {
     if (!user) return;
-    await updateDoc(doc(db, "cleaners", user.uid), { service_radius_km: km, updated_at: serverTimestamp() });
+    // setDoc+merge em vez de updateDoc: evita "No document to update" se o
+    // cadastro de faxineira ainda não existir (com o guard de rota isso não
+    // deveria acontecer mais, mas não custa não quebrar se acontecer).
+    await setDoc(doc(db, "cleaners", user.uid), { service_radius_km: km, updated_at: serverTimestamp() }, { merge: true });
   }
 
   async function handleSavePix() {
     if (!user) return;
     setSaving(true);
-    await updateDoc(doc(db, "cleaners", user.uid), { pix: { key_type: "auto", key_value: pixKey }, updated_at: serverTimestamp() });
+    await setDoc(doc(db, "cleaners", user.uid), { pix: { key_type: "auto", key_value: pixKey }, updated_at: serverTimestamp() }, { merge: true });
     setSaving(false);
   }
 
