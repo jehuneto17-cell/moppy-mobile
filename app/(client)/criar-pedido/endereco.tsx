@@ -19,10 +19,18 @@ import { C, font, space } from "@/src/theme";
 export default function EnderecoScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { addresses, addAddress } = useAddresses(user?.uid ?? null);
+  const { addresses, addAddress, loading: addressesLoading } = useAddresses(user?.uid ?? null);
   const { address, setAddress, notes, setNotes } = useCreateOrderStore();
   const [selectedId, setSelectedId] = useState<string | null>(address?.address_id ?? null);
-  const [showForm, setShowForm] = useState(addresses.length === 0);
+  const [showForm, setShowForm] = useState(false);
+
+  // addresses chega assíncrono (onSnapshot) — começa como [] até carregar de
+  // verdade, então "addresses.length === 0" no useState acima sempre dava true
+  // na 1ª renderização e o formulário ficava aberto até pra quem já tinha
+  // endereço salvo. Só decide depois que o carregamento termina.
+  useEffect(() => {
+    if (!addressesLoading && addresses.length === 0) setShowForm(true);
+  }, [addressesLoading, addresses.length]);
   const [showError, setShowError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ street: "", number: "", complement: "", neighborhood: "", city: "", state: "", postal_code: "" });
