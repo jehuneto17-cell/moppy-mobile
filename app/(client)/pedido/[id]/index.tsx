@@ -2,7 +2,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { collection, doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
 
 import { Avatar } from "@/src/components/ui/Avatar";
 import { Button } from "@/src/components/ui/Button";
@@ -106,10 +105,7 @@ export default function PedidoDetalheScreen() {
 
         {!loadingApps && applications.length === 0 && (
           <View style={styles.emptyState}>
-            <Svg width={96} height={96} viewBox="0 0 24 24" fill="none" stroke={C.border} strokeWidth={1.5}>
-              <Path d="M20 21a8 8 0 1 0-16 0" />
-              <Circle cx={12} cy={11} r={4} />
-            </Svg>
+            <Icon name="users" size={64} color={C.border} />
             <Text style={styles.emptyText}>Ainda ninguém se candidatou. Você será avisado em breve.</Text>
           </View>
         )}

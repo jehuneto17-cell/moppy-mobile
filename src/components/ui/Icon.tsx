@@ -41,6 +41,7 @@ const FEATHER_NAMES = [
   "map-pin",
   "send",
   "bell",
+  "users",
 ] as const;
 
 export type IconName = (typeof FEATHER_NAMES)[number] | keyof typeof MCI_NAMES;
