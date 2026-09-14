@@ -1,6 +1,5 @@
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
 
 import { Card } from "@/src/components/ui/Card";
 import { Icon } from "@/src/components/ui/Icon";
@@ -13,15 +12,6 @@ const OPTIONS = [
   { id: "heavy" as const, title: "Limpeza Pesada", desc: "Paredes, armários, fundo de tudo", icon: "heavy-clean" as const },
   { id: "laundry" as const, title: "Passar Roupas", desc: "Pela metragem da casa", icon: "iron" as const },
 ];
-
-function IronIcon() {
-  return (
-    <Svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke={C.purplePrimary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M4 21h9a5 5 0 0 0 5-5c0-4-3-8-8-9L5 4v9" />
-      <Circle cx={8} cy={18} r={1} />
-    </Svg>
-  );
-}
 
 export default function TipoScreen() {
   const router = useRouter();
@@ -40,7 +30,9 @@ export default function TipoScreen() {
         {OPTIONS.map((opt) => (
           <Card key={opt.id} onPress={() => handleSelect(opt.id)}>
             <View style={styles.row}>
-              <View style={styles.iconCircle}>{opt.icon === "iron" ? <IronIcon /> : <Icon name={opt.icon} size={28} color={C.purplePrimary} />}</View>
+              <View style={styles.iconCircle}>
+                <Icon name={opt.icon} size={28} color={C.purplePrimary} />
+              </View>
               <View>
                 <Text style={styles.optTitle}>{opt.title}</Text>
                 <Text style={styles.optDesc}>{opt.desc}</Text>

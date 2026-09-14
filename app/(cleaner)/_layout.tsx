@@ -34,6 +34,9 @@ export default function CleanerTabsLayout() {
           tabBarIcon: ({ color, size }) => <Icon name="user" color={color} size={size} />,
         }}
       />
+      <Tabs.Screen name="pedido/[id]" options={{ href: null }} />
+      <Tabs.Screen name="candidatura-resultado" options={{ href: null }} />
+      <Tabs.Screen name="solicitar-saque" options={{ href: null }} />
     </Tabs>
   );
 }

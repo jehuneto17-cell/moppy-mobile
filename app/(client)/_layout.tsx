@@ -20,6 +20,8 @@ export default function ClientTabsLayout() {
           tabBarIcon: ({ color, size }) => <Icon name="user" color={color} size={size} />,
         }}
       />
+      <Tabs.Screen name="criar-pedido" options={{ href: null }} />
+      <Tabs.Screen name="pedido/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -1,7 +1,7 @@
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Alert } from "@/src/components/ui/Alert";
 import { Checkbox } from "@/src/components/ui/Checkbox";
@@ -68,6 +68,9 @@ export default function TermosScreen() {
         <Text style={styles.termsBody}>
           Seus dados de cadastro e documentos são usados apenas para verificação de identidade e segurança da plataforma, conforme a LGPD.
         </Text>
+        <Pressable onPress={() => Linking.openURL("https://moppy-admin.vercel.app/privacidade")}>
+          <Text style={styles.link}>Ver políticas completas</Text>
+        </Pressable>
       </View>
 
       <View style={{ marginTop: space.l }}>
@@ -105,6 +108,7 @@ const styles = StyleSheet.create({
   termsBox: { borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.l, marginTop: space.l, maxHeight: 220 },
   termsHeading: { fontFamily: font.medium, fontSize: font.bodySm, color: "#6B7280", marginBottom: space.s },
   termsBody: { fontFamily: font.regular, fontSize: font.bodySm, color: C.textSecondary, lineHeight: 19, marginBottom: space.s },
+  link: { fontFamily: font.medium, fontSize: font.bodySm, color: C.purplePrimary },
   radiusTitle: { fontFamily: font.bold, fontSize: font.h3, color: C.textMaximum, marginTop: space.xxl, marginBottom: space.m },
   radiusSubtitle: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum, marginBottom: space.l },
   radiusRow: { flexDirection: "row", gap: space.s },

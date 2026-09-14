@@ -1,7 +1,7 @@
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Button } from "@/src/components/ui/Button";
 import { Checkbox } from "@/src/components/ui/Checkbox";
@@ -47,6 +47,9 @@ export default function OnboardingTermosScreen() {
             armazenados de acordo com a Lei Geral de Proteção de Dados (LGPD).
           </Text>
           <Text style={styles.termsBody}>Você pode solicitar a exclusão da sua conta e dos seus dados a qualquer momento pelas Configurações.</Text>
+          <Pressable onPress={() => Linking.openURL("https://moppy-admin.vercel.app/privacidade")}>
+            <Text style={styles.link}>Ver políticas completas</Text>
+          </Pressable>
         </ScrollView>
 
         <View style={styles.checkboxRow}>
@@ -67,5 +70,6 @@ const styles = StyleSheet.create({
   termsBox: { borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.l },
   termsHeading: { fontFamily: font.medium, fontSize: font.bodySm, color: "#6B7280", marginBottom: space.s, marginTop: space.s },
   termsBody: { fontFamily: font.regular, fontSize: font.bodySm, color: C.textSecondary, lineHeight: 19, marginBottom: space.s },
+  link: { fontFamily: font.medium, fontSize: font.bodySm, color: C.purplePrimary, marginTop: space.s },
   checkboxRow: { borderTopWidth: 1, borderTopColor: C.border, paddingTop: space.m, marginTop: space.s },
 });
