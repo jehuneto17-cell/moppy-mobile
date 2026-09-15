@@ -12,7 +12,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useCards } from "@/src/hooks/useCards";
 import { db } from "@/src/services/firebase";
 import { useCreateOrderStore } from "@/src/store/createOrderStore";
-import { C, font, space } from "@/src/theme";
+import { C, font, radius, space } from "@/src/theme";
 import { computeOrderPrice } from "@/src/utils/price";
 
 export default function PagamentoScreen() {
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     gap: space.s,
     alignItems: "flex-start",
     backgroundColor: C.warningBg,
-    borderRadius: 8,
+    borderRadius: radius.l,
     padding: space.m,
     marginTop: space.xl,
   },

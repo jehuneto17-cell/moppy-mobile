@@ -47,20 +47,22 @@ export const font = {
 
 export const space = { xs: 4, s: 8, m: 12, l: 16, xl: 20, xxl: 24, xxxl: 32, xxxxl: 48 };
 
-export const radius = { s: 4, m: 6, l: 8, xl: 12, pill: 999, circle: 9999 };
+// Raio maior e sombra mais suave = estilo cantos arredondados/elevação da Apple.
+// Mesmas chaves de antes — quem já usa radius.l/xl herda o novo valor sem mudar código.
+export const radius = { s: 6, m: 10, l: 14, xl: 20, pill: 999, circle: 9999 };
 
 export const shadowCard = {
   shadowColor: "#000",
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.1,
-  shadowRadius: 3,
-  elevation: 2,
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.08,
+  shadowRadius: 12,
+  elevation: 3,
 };
 
 export const shadowModal = {
   shadowColor: "#000",
-  shadowOffset: { width: 0, height: 20 },
-  shadowOpacity: 0.15,
-  shadowRadius: 25,
-  elevation: 10,
+  shadowOffset: { width: 0, height: 16 },
+  shadowOpacity: 0.18,
+  shadowRadius: 34,
+  elevation: 16,
 };

@@ -9,7 +9,7 @@ import { Button } from "@/src/components/ui/Button";
 import { Spinner } from "@/src/components/ui/Spinner";
 import { useAuth } from "@/src/hooks/useAuth";
 import { db } from "@/src/services/firebase";
-import { C, font, space } from "@/src/theme";
+import { C, font, radius, space } from "@/src/theme";
 import type { Order } from "@/src/types";
 
 export default function ConfirmacaoScreen() {
@@ -90,7 +90,7 @@ export default function ConfirmacaoScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.white, padding: space.xxl, alignItems: "center", justifyContent: "center" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: C.white },
-  cleanerCard: { flexDirection: "row", alignItems: "center", gap: space.m, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 8, padding: space.l, width: "100%", marginBottom: space.xxl },
+  cleanerCard: { flexDirection: "row", alignItems: "center", gap: space.m, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.l, width: "100%", marginBottom: space.xxl },
   cleanerName: { fontFamily: font.medium, fontSize: font.body, color: C.textMaximum },
   cleanerRating: { fontFamily: font.regular, fontSize: font.labelSm, color: C.textSecondary },
   title: { fontFamily: font.bold, fontSize: font.h2, color: C.textMaximum, textAlign: "center" },

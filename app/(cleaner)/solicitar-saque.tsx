@@ -10,7 +10,7 @@ import { LabeledInput } from "@/src/components/ui/LabeledInput";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useCleanerProfile } from "@/src/hooks/useCleanerProfile";
 import { useWallet } from "@/src/hooks/useWallet";
-import { C, font, space } from "@/src/theme";
+import { C, font, radius, space } from "@/src/theme";
 
 const SUGGESTIONS = [50, 100, 200];
 const MIN_WITHDRAWAL = 20;
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: "row", gap: space.s },
   chip: { paddingVertical: space.s, paddingHorizontal: space.l, borderRadius: 999, borderWidth: 1, borderColor: C.purplePrimary, backgroundColor: C.purpleLight },
   chipText: { fontFamily: font.medium, fontSize: font.bodySm, color: C.purpleVeryDark },
-  pixBox: { backgroundColor: C.surface, borderRadius: 8, padding: space.l, gap: 4 },
+  pixBox: { backgroundColor: C.surface, borderRadius: radius.l, padding: space.l, gap: 4 },
   pixLabel: { fontFamily: font.medium, fontSize: font.bodySm, color: C.textSecondary },
   pixValue: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
   pixWarning: { fontFamily: font.regular, fontSize: font.labelSm, color: C.error, marginTop: 4 },

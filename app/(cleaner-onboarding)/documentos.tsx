@@ -9,7 +9,7 @@ import { LabeledInput } from "@/src/components/ui/LabeledInput";
 import { WizardShell } from "@/src/components/wizard/WizardShell";
 import { uploadImage } from "@/src/services/cloudinary";
 import { useCleanerOnboardingStore } from "@/src/store/cleanerOnboardingStore";
-import { C, font, space } from "@/src/theme";
+import { C, font, radius, space } from "@/src/theme";
 
 type DocKey = "id_document" | "cpf_document" | "selfie" | "address_proof";
 
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   previewBox: {
     minHeight: 220,
     backgroundColor: C.surface,
-    borderRadius: 8,
+    borderRadius: radius.l,
     borderWidth: 1,
     borderColor: C.border,
     alignItems: "center",

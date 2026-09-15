@@ -10,7 +10,7 @@ import { Rating } from "@/src/components/ui/Rating";
 import { Spinner } from "@/src/components/ui/Spinner";
 import { useUserProfile } from "@/src/hooks/useUserProfile";
 import { db } from "@/src/services/firebase";
-import { C, font, space } from "@/src/theme";
+import { C, font, radius, space } from "@/src/theme";
 import type { Order } from "@/src/types";
 
 export default function AguardandoConfirmacaoScreen() {
@@ -98,8 +98,8 @@ const styles = StyleSheet.create({
   iconCircle: { width: 96, height: 96, borderRadius: 48, alignItems: "center", justifyContent: "center", marginTop: space.xl },
   title: { fontFamily: font.bold, fontSize: font.h2, color: C.textMaximum, marginTop: space.xl, textAlign: "center" },
   subtitle: { fontFamily: font.regular, fontSize: font.body, color: C.textSecondary, textAlign: "center", marginTop: space.s, maxWidth: 300, lineHeight: 20 },
-  countdownBox: { marginTop: space.xl, paddingVertical: space.s, paddingHorizontal: space.l, backgroundColor: C.errorBg, borderRadius: 8 },
+  countdownBox: { marginTop: space.xl, paddingVertical: space.s, paddingHorizontal: space.l, backgroundColor: C.errorBg, borderRadius: radius.l },
   countdownText: { fontFamily: font.medium, fontSize: font.body, color: C.error },
-  clientCard: { width: "100%", marginTop: space.xxl, backgroundColor: C.surface, borderRadius: 8, padding: space.l, flexDirection: "row", alignItems: "center", gap: space.m },
+  clientCard: { width: "100%", marginTop: space.xxl, backgroundColor: C.surface, borderRadius: radius.l, padding: space.l, flexDirection: "row", alignItems: "center", gap: space.m },
   clientName: { fontFamily: font.bold, fontSize: font.h3, color: C.textMaximum },
 });
