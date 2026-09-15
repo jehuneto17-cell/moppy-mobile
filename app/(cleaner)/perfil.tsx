@@ -2,10 +2,15 @@ import { useRouter } from "expo-router";
 import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, { LinearTransition } from "react-native-reanimated";
 
+import { AccordionSection } from "@/src/components/ui/AccordionSection";
 import { Button } from "@/src/components/ui/Button";
 import { Icon } from "@/src/components/ui/Icon";
+import type { IconName } from "@/src/components/ui/Icon";
 import { LabeledInput } from "@/src/components/ui/LabeledInput";
+import { ProfileFooterActions } from "@/src/components/ui/ProfileFooterActions";
+import { ProfileHeader } from "@/src/components/ui/ProfileHeader";
 import { RoleGuardScreen } from "@/src/components/ui/RoleGuardScreen";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useCleanerProfile } from "@/src/hooks/useCleanerProfile";
@@ -15,13 +20,13 @@ import { C, font, radius, space } from "@/src/theme";
 
 type SectionId = "personal" | "documents" | "radius" | "pix" | "notifications" | "more";
 
-const SECTIONS: { id: SectionId; title: string }[] = [
-  { id: "personal", title: "Dados Pessoais" },
-  { id: "documents", title: "Documentos" },
-  { id: "radius", title: "Raio de Atuação" },
-  { id: "pix", title: "Chave PIX" },
-  { id: "notifications", title: "Notificações" },
-  { id: "more", title: "Mais" },
+const SECTIONS: { id: SectionId; title: string; icon: IconName }[] = [
+  { id: "personal", title: "Dados Pessoais", icon: "user" },
+  { id: "documents", title: "Documentos", icon: "file-text" },
+  { id: "radius", title: "Raio de Atuação", icon: "navigation" },
+  { id: "pix", title: "Chave PIX", icon: "send" },
+  { id: "notifications", title: "Notificações", icon: "bell" },
+  { id: "more", title: "Mais", icon: "info" },
 ];
 
 const RADIUS_OPTIONS = [5, 10, 15, 20];
@@ -94,31 +99,36 @@ export default function CleanerPerfilScreen() {
   return (
     <RoleGuardScreen required="cleaner">
     <ScrollView style={styles.container} contentContainerStyle={{ padding: space.xxl }}>
-      <Text style={styles.title}>Perfil e Configurações</Text>
+      <ProfileHeader
+        name={name || profile?.name}
+        email={user?.email ?? undefined}
+        subtitle={cleanerProfile ? `${cleanerProfile.service_radius_km ?? 10} km de raio de atuação` : undefined}
+      />
 
       <View style={{ gap: space.m }}>
         {SECTIONS.map((section) => {
           const isOpen = open === section.id;
           return (
-            <View key={section.id} style={styles.sectionBox}>
-              <Pressable style={styles.sectionHeader} onPress={() => setOpen(isOpen ? null : section.id)}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
-                <Icon name="chevron-down" size={18} color={C.textSecondary} />
-              </Pressable>
-
-              {isOpen && section.id === "personal" && (
-                <View style={styles.sectionBody}>
+            <AccordionSection
+              key={section.id}
+              title={section.title}
+              icon={section.icon}
+              isOpen={isOpen}
+              onToggle={() => setOpen(isOpen ? null : section.id)}
+            >
+              {section.id === "personal" && (
+                <>
                   <LabeledInput label="Nome" value={name} onChangeText={setName} />
                   <LabeledInput label="E-mail" value={user?.email ?? ""} state="disabled" />
                   <LabeledInput label="Telefone" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
                   <Button variant="primary" loading={saving} onPress={handleSavePersonal}>
                     Salvar
                   </Button>
-                </View>
+                </>
               )}
 
-              {isOpen && section.id === "documents" && (
-                <View style={styles.sectionBody}>
+              {section.id === "documents" && (
+                <>
                   {Object.entries(DOC_LABELS).map(([key, label]) => {
                     const doc = cleanerProfile?.documents?.[key as "id_document" | "cpf_document" | "selfie" | "address_proof"];
                     const badge = !doc
@@ -135,11 +145,11 @@ export default function CleanerPerfilScreen() {
                       </View>
                     );
                   })}
-                </View>
+                </>
               )}
 
-              {isOpen && section.id === "radius" && (
-                <View style={styles.sectionBody}>
+              {section.id === "radius" && (
+                <>
                   <Text style={styles.radiusText}>
                     Até <Text style={{ fontFamily: font.bold }}>{cleanerProfile?.service_radius_km ?? 10} km</Text> de distância
                   </Text>
@@ -153,20 +163,20 @@ export default function CleanerPerfilScreen() {
                       );
                     })}
                   </View>
-                </View>
+                </>
               )}
 
-              {isOpen && section.id === "pix" && (
-                <View style={styles.sectionBody}>
+              {section.id === "pix" && (
+                <>
                   <LabeledInput label="Chave PIX" value={pixKey} onChangeText={setPixKey} />
                   <Button variant="primary" loading={saving} onPress={handleSavePix}>
                     Salvar
                   </Button>
-                </View>
+                </>
               )}
 
-              {isOpen && section.id === "notifications" && (
-                <View style={styles.sectionBody}>
+              {section.id === "notifications" && (
+                <>
                   <View style={styles.toggleRow}>
                     <Text style={styles.toggleLabel}>Notificações push</Text>
                     <Toggle on={pushEnabled} onToggle={() => setPushEnabled((s) => !s)} />
@@ -175,25 +185,25 @@ export default function CleanerPerfilScreen() {
                     <Text style={styles.toggleLabel}>Notificações por e-mail</Text>
                     <Toggle on={emailEnabled} onToggle={() => setEmailEnabled((s) => !s)} />
                   </View>
-                </View>
+                </>
               )}
 
-              {isOpen && section.id === "more" && (
-                <View style={styles.sectionBody}>
+              {section.id === "more" && (
+                <>
                   <Pressable onPress={() => router.push("/(cleaner)/historico")}>
                     <Text style={styles.linkText}>Histórico de Serviços</Text>
                   </Pressable>
                   <Text style={styles.linkText}>Termos</Text>
-                  <Pressable onPress={logout}>
-                    <Text style={styles.linkText}>Sair</Text>
-                  </Pressable>
-                  <Text style={styles.linkTextDanger}>Deletar conta</Text>
-                </View>
+                </>
               )}
-            </View>
+            </AccordionSection>
           );
         })}
       </View>
+
+      <Animated.View layout={LinearTransition.duration(220)} style={{ marginTop: space.xxl }}>
+        <ProfileFooterActions onLogout={logout} />
+      </Animated.View>
     </ScrollView>
     </RoleGuardScreen>
   );
@@ -201,11 +211,6 @@ export default function CleanerPerfilScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.white },
-  title: { fontFamily: font.bold, fontSize: font.h2, color: C.textMaximum, marginBottom: space.xxl },
-  sectionBox: { borderWidth: 1, borderColor: C.border, borderRadius: radius.l, overflow: "hidden" },
-  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: space.l },
-  sectionTitle: { fontFamily: font.bold, fontSize: font.h3, color: C.textMaximum },
-  sectionBody: { paddingHorizontal: space.l, paddingBottom: space.l, gap: space.m },
   docRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   docLabel: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
   docBadge: { paddingVertical: 3, paddingHorizontal: 10, borderRadius: radius.xl },
@@ -216,7 +221,6 @@ const styles = StyleSheet.create({
   toggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   toggleLabel: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
   linkText: { fontFamily: font.regular, fontSize: font.body, color: C.purplePrimary },
-  linkTextDanger: { fontFamily: font.regular, fontSize: font.body, color: C.error },
 });
 
 const toggleStyles = StyleSheet.create({

@@ -42,6 +42,9 @@ const FEATHER_NAMES = [
   "send",
   "bell",
   "users",
+  "trash-2",
+  "file-text",
+  "navigation",
 ] as const;
 
 export type IconName = (typeof FEATHER_NAMES)[number] | keyof typeof MCI_NAMES;

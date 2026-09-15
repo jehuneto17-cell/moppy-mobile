@@ -2,10 +2,14 @@ import { useRouter } from "expo-router";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, { LinearTransition } from "react-native-reanimated";
 
+import { AccordionSection } from "@/src/components/ui/AccordionSection";
 import { Button } from "@/src/components/ui/Button";
 import { Icon } from "@/src/components/ui/Icon";
 import { LabeledInput } from "@/src/components/ui/LabeledInput";
+import { ProfileFooterActions } from "@/src/components/ui/ProfileFooterActions";
+import { ProfileHeader } from "@/src/components/ui/ProfileHeader";
 import { RoleGuardScreen } from "@/src/components/ui/RoleGuardScreen";
 import { useAddresses } from "@/src/hooks/useAddresses";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -13,15 +17,16 @@ import { useCards } from "@/src/hooks/useCards";
 import { useUserProfile } from "@/src/hooks/useUserProfile";
 import { db } from "@/src/services/firebase";
 import { C, font, radius, space } from "@/src/theme";
+import type { IconName } from "@/src/components/ui/Icon";
 
 type SectionId = "personal" | "addresses" | "cards" | "notifications" | "more";
 
-const SECTIONS: { id: SectionId; title: string }[] = [
-  { id: "personal", title: "Dados Pessoais" },
-  { id: "addresses", title: "Endereços" },
-  { id: "cards", title: "Cartões" },
-  { id: "notifications", title: "Notificações" },
-  { id: "more", title: "Mais" },
+const SECTIONS: { id: SectionId; title: string; icon: IconName }[] = [
+  { id: "personal", title: "Dados Pessoais", icon: "user" },
+  { id: "addresses", title: "Endereços", icon: "map-pin" },
+  { id: "cards", title: "Cartões", icon: "credit-card" },
+  { id: "notifications", title: "Notificações", icon: "bell" },
+  { id: "more", title: "Mais", icon: "info" },
 ];
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
@@ -93,31 +98,32 @@ export default function ClientPerfilScreen() {
   return (
     <RoleGuardScreen required="client">
     <ScrollView style={styles.container} contentContainerStyle={{ padding: space.xxl }}>
-      <Text style={styles.title}>Seu Perfil</Text>
+      <ProfileHeader name={name || profile?.name} email={user?.email ?? undefined} />
 
       <View style={{ gap: space.m }}>
         {SECTIONS.map((section) => {
           const isOpen = open === section.id;
           return (
-            <View key={section.id} style={styles.sectionBox}>
-              <Pressable style={styles.sectionHeader} onPress={() => setOpen(isOpen ? null : section.id)}>
-                <Text style={[styles.sectionTitle, isOpen && { color: C.purplePrimary }]}>{section.title}</Text>
-                <Icon name="chevron-down" size={18} color={isOpen ? C.purplePrimary : C.textSecondary} />
-              </Pressable>
-
-              {isOpen && section.id === "personal" && (
-                <View style={styles.sectionBody}>
+            <AccordionSection
+              key={section.id}
+              title={section.title}
+              icon={section.icon}
+              isOpen={isOpen}
+              onToggle={() => setOpen(isOpen ? null : section.id)}
+            >
+              {section.id === "personal" && (
+                <>
                   <LabeledInput label="Nome" value={name} onChangeText={setName} />
                   <LabeledInput label="E-mail" value={user?.email ?? ""} state="disabled" />
                   <LabeledInput label="Telefone" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
                   <Button variant="primary" loading={saving} onPress={handleSavePersonal}>
                     Salvar
                   </Button>
-                </View>
+                </>
               )}
 
-              {isOpen && section.id === "addresses" && (
-                <View style={styles.sectionBody}>
+              {section.id === "addresses" && (
+                <>
                   {addresses.map((a) => (
                     <View key={a.address_id} style={styles.listItem}>
                       <Icon name="home" size={20} color={C.purplePrimary} />
@@ -148,11 +154,11 @@ export default function ClientPerfilScreen() {
                       </Button>
                     </View>
                   )}
-                </View>
+                </>
               )}
 
-              {isOpen && section.id === "cards" && (
-                <View style={styles.sectionBody}>
+              {section.id === "cards" && (
+                <>
                   {cards.map((c) => (
                     <View key={c.card_id} style={styles.listItem}>
                       <Icon name="credit-card" size={20} color={C.purplePrimary} />
@@ -166,11 +172,11 @@ export default function ClientPerfilScreen() {
                   <Pressable onPress={() => router.push("/(client)/criar-pedido/novo-cartao")}>
                     <Text style={styles.addLink}>+ Novo cartão</Text>
                   </Pressable>
-                </View>
+                </>
               )}
 
-              {isOpen && section.id === "notifications" && (
-                <View style={styles.sectionBody}>
+              {section.id === "notifications" && (
+                <>
                   <View style={styles.toggleRow}>
                     <Text style={styles.toggleLabel}>Notificações push</Text>
                     <Toggle on={pushEnabled} onToggle={handleTogglePush} />
@@ -179,23 +185,23 @@ export default function ClientPerfilScreen() {
                     <Text style={styles.toggleLabel}>Email</Text>
                     <Toggle on={emailEnabled} onToggle={handleToggleEmail} />
                   </View>
-                </View>
+                </>
               )}
 
-              {isOpen && section.id === "more" && (
-                <View style={styles.sectionBody}>
+              {section.id === "more" && (
+                <>
                   <Text style={styles.linkText}>Termos de Uso</Text>
                   <Text style={styles.linkText}>Política de Privacidade</Text>
-                  <Pressable onPress={logout}>
-                    <Text style={styles.linkText}>Sair</Text>
-                  </Pressable>
-                  <Text style={styles.linkTextDanger}>Deletar conta</Text>
-                </View>
+                </>
               )}
-            </View>
+            </AccordionSection>
           );
         })}
       </View>
+
+      <Animated.View layout={LinearTransition.duration(220)} style={{ marginTop: space.xxl }}>
+        <ProfileFooterActions onLogout={logout} />
+      </Animated.View>
     </ScrollView>
     </RoleGuardScreen>
   );
@@ -203,11 +209,6 @@ export default function ClientPerfilScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.white },
-  title: { fontFamily: font.bold, fontSize: font.h2, color: C.textMaximum, marginBottom: space.xxl },
-  sectionBox: { borderWidth: 1, borderColor: C.border, borderRadius: radius.l, overflow: "hidden" },
-  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: space.l },
-  sectionTitle: { fontFamily: font.bold, fontSize: font.h3, color: C.textMaximum },
-  sectionBody: { paddingHorizontal: space.l, paddingBottom: space.l, gap: space.m },
   listItem: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.m },
   listItemText: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum, flex: 1 },
   emptyText: { fontFamily: font.regular, fontSize: font.bodySm, color: C.textSecondary },
@@ -218,5 +219,4 @@ const styles = StyleSheet.create({
   trackOn: { backgroundColor: C.purplePrimary, alignItems: "flex-end" },
   handle: { width: 18, height: 18, borderRadius: 9999, backgroundColor: "#fff" },
   linkText: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
-  linkTextDanger: { fontFamily: font.regular, fontSize: font.body, color: C.error },
 });
