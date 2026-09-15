@@ -1,4 +1,7 @@
+import * as Haptics from "expo-haptics";
+import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 import { C, font, radius } from "@/src/theme";
 
@@ -40,34 +43,58 @@ export function Button({
   const v = VARIANTS[variant];
   const s = SIZES[size];
   const isDisabled = disabled || loading;
+  const [pressed, setPressed] = useState(false);
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
-    <Pressable
-      onPress={isDisabled ? undefined : onPress}
-      disabled={isDisabled}
-      style={({ pressed }) => [
-        styles.base,
-        {
-          backgroundColor: pressed && !isDisabled ? v.bgPressed : v.bg,
-          borderWidth: v.border ? 1 : 0,
-          borderColor: v.border,
-          paddingVertical: s.paddingV,
-          paddingHorizontal: s.paddingH,
-          height: s.height,
-          opacity: isDisabled && !loading ? 0.5 : 1,
-        },
-        style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator color={v.color} size="small" />
-      ) : (
-        <View style={styles.content}>
-          {icon}
-          <Text style={[styles.label, { color: v.color, fontSize: s.fontSize }]}>{children}</Text>
-        </View>
-      )}
-    </Pressable>
+    <Animated.View style={[animatedStyle, style]}>
+      <Pressable
+        onPress={
+          isDisabled
+            ? undefined
+            : () => {
+                Haptics.impactAsync(
+                  variant === "danger"
+                    ? Haptics.ImpactFeedbackStyle.Medium
+                    : Haptics.ImpactFeedbackStyle.Light
+                );
+                onPress?.();
+              }
+        }
+        onPressIn={() => {
+          if (isDisabled) return;
+          setPressed(true);
+          scale.value = withSpring(0.96, { damping: 15, stiffness: 400 });
+        }}
+        onPressOut={() => {
+          setPressed(false);
+          scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+        }}
+        disabled={isDisabled}
+        style={[
+          styles.base,
+          {
+            backgroundColor: pressed && !isDisabled ? v.bgPressed : v.bg,
+            borderWidth: v.border ? 1 : 0,
+            borderColor: v.border,
+            paddingVertical: s.paddingV,
+            paddingHorizontal: s.paddingH,
+            height: s.height,
+            opacity: isDisabled && !loading ? 0.5 : 1,
+          },
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator color={v.color} size="small" />
+        ) : (
+          <View style={styles.content}>
+            {icon}
+            <Text style={[styles.label, { color: v.color, fontSize: s.fontSize }]}>{children}</Text>
+          </View>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }
 
