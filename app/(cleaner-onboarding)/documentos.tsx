@@ -26,6 +26,7 @@ export default function DocumentosScreen() {
   const [stepIndex, setStepIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const step = STEPS[stepIndex];
   const captured = !!documents[step.key];
@@ -45,9 +46,12 @@ export default function DocumentosScreen() {
     if (result.canceled) return;
 
     setUploading(true);
+    setUploadError(null);
     try {
       const { url } = await uploadImage(`kyc/${step.key}`, result.assets[0].uri);
       setDocument(step.key, url);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Falha ao enviar a foto. Tente de novo.");
     } finally {
       setUploading(false);
     }
@@ -93,6 +97,12 @@ export default function DocumentosScreen() {
           </>
         )}
       </View>
+
+      {uploadError && (
+        <View style={{ marginTop: space.l }}>
+          <Alert variant="error">{uploadError}</Alert>
+        </View>
+      )}
 
       {showError && (
         <View style={{ marginTop: space.l }}>

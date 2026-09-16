@@ -1,3 +1,5 @@
+import { Platform } from "react-native";
+
 import { auth } from "./firebase";
 
 const USE_MOCK = process.env.EXPO_PUBLIC_USE_MOCK_CLOUDINARY === "true";
@@ -28,7 +30,14 @@ export async function uploadImage(folder: string, localUri?: string) {
   if (!idToken) throw new Error("Usuário não autenticado");
 
   const form = new FormData();
-  form.append("file", { uri: localUri, name: "upload.jpg", type: "image/jpeg" } as unknown as Blob);
+  if (Platform.OS === "web") {
+    // No web, FormData.append só aceita Blob/File de verdade — o truque
+    // {uri,name,type} é só pro polyfill de fetch do React Native.
+    const blob = await (await fetch(localUri)).blob();
+    form.append("file", blob, "upload.jpg");
+  } else {
+    form.append("file", { uri: localUri, name: "upload.jpg", type: "image/jpeg" } as unknown as Blob);
+  }
   form.append("folder", folder);
 
   const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/media/upload`, {
