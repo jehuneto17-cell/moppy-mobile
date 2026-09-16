@@ -41,6 +41,7 @@ export default function TermosScreen() {
 
     await setDoc(doc(db, "cleaners", user.uid), {
       cleaner_id: user.uid,
+      email: user.email,
       documents: docs,
       service_radius_km: radiusKm,
       approval_status: "pending",
