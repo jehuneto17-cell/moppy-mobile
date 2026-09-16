@@ -15,21 +15,29 @@ export type CleanerProfile = {
 };
 
 export function useCleanerProfile(uid: string | null) {
-  const [profile, setProfile] = useState<CleanerProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Guarda de qual uid veio o profile/loading atual — sem isso, quando uid
+  // troca de null pra um valor real (ex: role carrega um instante depois de
+  // montar), o useEffect ainda não rodou nesse render e o hook devolve o
+  // profile/loading antigos (do uid=null: profile null, loading false), que
+  // useRoleGuard lê como "perfil não existe" e redireciona pro onboarding
+  // por engano, mesmo a conta já tendo perfil aprovado.
+  const [state, setState] = useState<{ uid: string | null; profile: CleanerProfile | null; loading: boolean }>({
+    uid: null,
+    profile: null,
+    loading: true,
+  });
 
   useEffect(() => {
     if (!uid) {
-      setProfile(null);
-      setLoading(false);
+      setState({ uid, profile: null, loading: false });
       return;
     }
-    setLoading(true);
+    setState((s) => ({ ...s, loading: true }));
     return onSnapshot(doc(db, "cleaners", uid), (snap) => {
-      setProfile(snap.exists() ? ({ cleaner_id: snap.id, ...snap.data() } as CleanerProfile) : null);
-      setLoading(false);
+      setState({ uid, profile: snap.exists() ? ({ cleaner_id: snap.id, ...snap.data() } as CleanerProfile) : null, loading: false });
     });
   }, [uid]);
 
-  return { profile, loading };
+  const stale = state.uid !== uid;
+  return { profile: stale ? null : state.profile, loading: stale || state.loading };
 }
