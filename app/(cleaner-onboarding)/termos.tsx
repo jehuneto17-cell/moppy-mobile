@@ -105,7 +105,7 @@ export default function TermosScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.white },
-  termsBox: { borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.l, marginTop: space.l, maxHeight: 220 },
+  termsBox: { borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.l, marginTop: space.l },
   termsHeading: { fontFamily: font.medium, fontSize: font.bodySm, color: "#6B7280", marginBottom: space.s },
   termsBody: { fontFamily: font.regular, fontSize: font.bodySm, color: C.textSecondary, lineHeight: 19, marginBottom: space.s },
   link: { fontFamily: font.medium, fontSize: font.bodySm, color: C.purplePrimary },
