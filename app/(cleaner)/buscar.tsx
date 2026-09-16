@@ -248,8 +248,8 @@ export default function CleanerBuscarScreen() {
       </ScrollView>
 
       <Modal visible={showFilters} transparent animationType="slide" onRequestClose={() => setShowFilters(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowFilters(false)}>
+          <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHandle} />
             <ScrollView contentContainerStyle={{ paddingBottom: space.l }}>
               <Text style={styles.modalTitle}>Filtros</Text>
@@ -302,8 +302,8 @@ export default function CleanerBuscarScreen() {
                 </Button>
               </View>
             </View>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
     </RoleGuardScreen>
