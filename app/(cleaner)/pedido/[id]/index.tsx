@@ -165,7 +165,7 @@ export default function CleanerPedidoDetalheScreen() {
           {serviceLabel(order.service.type)} · {order.service.size}
         </Text>
         <Text style={styles.sub}>{new Date(order.scheduled_at).toLocaleString("pt-BR")}</Text>
-        <Text style={styles.sub}>{order.address.neighborhood}</Text>
+        <Text style={styles.sub}>Bairro: {order.address.neighborhood}</Text>
 
         {order.notes && (
           <View style={styles.notesBox}>
