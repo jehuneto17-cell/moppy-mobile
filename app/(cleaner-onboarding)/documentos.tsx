@@ -1,3 +1,4 @@
+import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -13,11 +14,16 @@ import { C, font, radius, space } from "@/src/theme";
 
 type DocKey = "id_document" | "cpf_document" | "selfie" | "address_proof";
 
-const STEPS: { key: DocKey; title: string; instruction: string; needsCpfField?: boolean }[] = [
+const STEPS: { key: DocKey; title: string; instruction: string; needsCpfField?: boolean; allowPdf?: boolean }[] = [
   { key: "id_document", title: "Frente do documento", instruction: "Envie uma foto da frente do seu RG ou CNH, bem legível." },
   { key: "cpf_document", title: "Verso do documento", instruction: "Informe seu CPF e envie uma foto do verso do RG ou CNH.", needsCpfField: true },
   { key: "selfie", title: "Selfie", instruction: "Tire uma selfie com rosto limpo, bem iluminado, sem óculos escuros ou boné." },
-  { key: "address_proof", title: "Comprovante de endereço", instruction: "Envie um comprovante com menos de 90 dias (conta de luz, água, etc)." },
+  {
+    key: "address_proof",
+    title: "Comprovante de endereço",
+    instruction: "Envie um comprovante com menos de 90 dias (conta de luz, água, etc). Foto ou PDF.",
+    allowPdf: true,
+  },
 ];
 
 export default function DocumentosScreen() {
@@ -52,6 +58,22 @@ export default function DocumentosScreen() {
       setDocument(step.key, url);
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Falha ao enviar a foto. Tente de novo.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handlePickPdf() {
+    const result = await DocumentPicker.getDocumentAsync({ type: "application/pdf" });
+    if (result.canceled) return;
+
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const { url } = await uploadImage(`kyc/${step.key}`, result.assets[0].uri, "application/pdf");
+      setDocument(step.key, url);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Falha ao enviar o PDF. Tente de novo.");
     } finally {
       setUploading(false);
     }
@@ -98,6 +120,12 @@ export default function DocumentosScreen() {
         )}
       </View>
 
+      {step.allowPdf && !captured && (
+        <Text style={styles.pdfLink} onPress={handlePickPdf}>
+          {uploading ? "Enviando..." : "ou enviar um PDF"}
+        </Text>
+      )}
+
       {uploadError && (
         <View style={{ marginTop: space.l }}>
           <Alert variant="error">{uploadError}</Alert>
@@ -131,4 +159,11 @@ const styles = StyleSheet.create({
   },
   previewBoxCaptured: { backgroundColor: C.successBg, borderColor: C.success },
   previewLabel: { fontFamily: font.regular, fontSize: font.bodySm, color: C.textSecondary },
+  pdfLink: {
+    fontFamily: font.medium,
+    fontSize: font.bodySm,
+    color: C.purplePrimary,
+    textAlign: "center",
+    marginTop: space.m,
+  },
 });

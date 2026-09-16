@@ -13,7 +13,7 @@ const USE_MOCK = process.env.EXPO_PUBLIC_USE_MOCK_CLOUDINARY === "true";
 // captura ainda não têm um seletor de imagem real — enquanto isso não for
 // adicionado, chamar isso com EXPO_PUBLIC_USE_MOCK_CLOUDINARY=false e sem
 // localUri lança erro (propositalmente, pra não fingir sucesso).
-export async function uploadImage(folder: string, localUri?: string) {
+export async function uploadImage(folder: string, localUri?: string, mimeType = "image/jpeg") {
   if (USE_MOCK) {
     const fakeId = Math.random().toString(36).slice(2, 10);
     return {
@@ -29,14 +29,15 @@ export async function uploadImage(folder: string, localUri?: string) {
   const idToken = await auth.currentUser?.getIdToken();
   if (!idToken) throw new Error("Usuário não autenticado");
 
+  const ext = mimeType === "application/pdf" ? "pdf" : "jpg";
   const form = new FormData();
   if (Platform.OS === "web") {
     // No web, FormData.append só aceita Blob/File de verdade — o truque
     // {uri,name,type} é só pro polyfill de fetch do React Native.
     const blob = await (await fetch(localUri)).blob();
-    form.append("file", blob, "upload.jpg");
+    form.append("file", blob, `upload.${ext}`);
   } else {
-    form.append("file", { uri: localUri, name: "upload.jpg", type: "image/jpeg" } as unknown as Blob);
+    form.append("file", { uri: localUri, name: `upload.${ext}`, type: mimeType } as unknown as Blob);
   }
   form.append("folder", folder);
 
