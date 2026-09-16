@@ -14,8 +14,8 @@ import { C, font, radius, space } from "@/src/theme";
 type DocKey = "id_document" | "cpf_document" | "selfie" | "address_proof";
 
 const STEPS: { key: DocKey; title: string; instruction: string; needsCpfField?: boolean }[] = [
-  { key: "id_document", title: "Documento com foto", instruction: "Envie uma foto do seu RG ou CNH, bem legível." },
-  { key: "cpf_document", title: "CPF", instruction: "Informe seu CPF e envie uma foto do documento.", needsCpfField: true },
+  { key: "id_document", title: "Frente do documento", instruction: "Envie uma foto da frente do seu RG ou CNH, bem legível." },
+  { key: "cpf_document", title: "Verso do documento", instruction: "Informe seu CPF e envie uma foto do verso do RG ou CNH.", needsCpfField: true },
   { key: "selfie", title: "Selfie", instruction: "Tire uma selfie com rosto limpo, bem iluminado, sem óculos escuros ou boné." },
   { key: "address_proof", title: "Comprovante de endereço", instruction: "Envie um comprovante com menos de 90 dias (conta de luz, água, etc)." },
 ];

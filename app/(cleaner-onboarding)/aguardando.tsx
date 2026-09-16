@@ -10,8 +10,8 @@ import { useCleanerProfile } from "@/src/hooks/useCleanerProfile";
 import { C, font, radius, space } from "@/src/theme";
 
 const CHECKLIST: { key: "id_document" | "cpf_document" | "selfie" | "address_proof"; label: string }[] = [
-  { key: "id_document", label: "RG validado" },
-  { key: "cpf_document", label: "CPF validado" },
+  { key: "id_document", label: "Frente do documento validada" },
+  { key: "cpf_document", label: "Verso do documento e CPF validados" },
   { key: "selfie", label: "Selfie aprovada" },
   { key: "address_proof", label: "Comprovante verificado" },
 ];
