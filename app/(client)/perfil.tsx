@@ -42,7 +42,9 @@ export default function ClientPerfilScreen() {
   const { user, logout } = useAuth();
   const { profile } = useUserProfile(user?.uid ?? null);
   const { addresses, addAddress } = useAddresses(user?.uid ?? null);
-  const { cards } = useCards(user?.uid ?? null);
+  const { cards, deleteCard } = useCards(user?.uid ?? null);
+  const [confirmingCardId, setConfirmingCardId] = useState<string | null>(null);
+  const [deletingCard, setDeletingCard] = useState(false);
 
   const [open, setOpen] = useState<SectionId | null>("personal");
   const [name, setName] = useState(profile?.name ?? "");
@@ -64,6 +66,14 @@ export default function ClientPerfilScreen() {
     setPushEnabled((profile as any).notifications_push_enabled ?? true);
     setEmailEnabled((profile as any).notifications_email_enabled ?? false);
   }, [profile]);
+
+  async function handleDeleteCard(cardId: string) {
+    if (!user) return;
+    setDeletingCard(true);
+    await deleteCard(user.uid, cardId);
+    setDeletingCard(false);
+    setConfirmingCardId(null);
+  }
 
   async function handleSaveAddress() {
     if (!user) return;
@@ -159,14 +169,33 @@ export default function ClientPerfilScreen() {
 
               {section.id === "cards" && (
                 <>
-                  {cards.map((c) => (
-                    <View key={c.card_id} style={styles.listItem}>
-                      <Icon name="credit-card" size={20} color={C.purplePrimary} />
-                      <Text style={styles.listItemText}>
-                        •••• {c.last_four} · {c.holder_name}
-                      </Text>
-                    </View>
-                  ))}
+                  {cards.map((c) =>
+                    confirmingCardId === c.card_id ? (
+                      <View key={c.card_id} style={styles.confirmDeleteRow}>
+                        <Text style={styles.confirmDeleteText}>
+                          Excluir cartão •••• {c.last_four}? Se ele estiver vinculado a um pedido pendente, a cobrança pode falhar.
+                        </Text>
+                        <View style={{ flexDirection: "row", gap: space.s, marginTop: space.s }}>
+                          <Pressable onPress={() => setConfirmingCardId(null)} disabled={deletingCard}>
+                            <Text style={styles.cancelDeleteText}>Cancelar</Text>
+                          </Pressable>
+                          <Pressable onPress={() => handleDeleteCard(c.card_id)} disabled={deletingCard}>
+                            <Text style={styles.confirmDeleteAction}>{deletingCard ? "Excluindo..." : "Excluir"}</Text>
+                          </Pressable>
+                        </View>
+                      </View>
+                    ) : (
+                      <View key={c.card_id} style={styles.listItem}>
+                        <Icon name="credit-card" size={20} color={C.purplePrimary} />
+                        <Text style={styles.listItemText}>
+                          •••• {c.last_four} · {c.holder_name}
+                        </Text>
+                        <Pressable onPress={() => setConfirmingCardId(c.card_id)} hitSlop={8}>
+                          <Icon name="trash-2" size={18} color={C.error} />
+                        </Pressable>
+                      </View>
+                    )
+                  )}
                   {cards.length === 0 && <Text style={styles.emptyText}>Nenhum cartão salvo ainda.</Text>}
 
                   <Pressable onPress={() => router.push("/(client)/criar-pedido/novo-cartao")}>
@@ -213,6 +242,10 @@ const styles = StyleSheet.create({
   listItemText: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum, flex: 1 },
   emptyText: { fontFamily: font.regular, fontSize: font.bodySm, color: C.textSecondary },
   addLink: { fontFamily: font.medium, fontSize: font.body, color: C.purplePrimary, marginTop: space.xs },
+  confirmDeleteRow: { backgroundColor: C.errorBg, borderWidth: 1, borderColor: C.error, borderRadius: radius.l, padding: space.m },
+  confirmDeleteText: { fontFamily: font.regular, fontSize: font.bodySm, color: C.textMaximum, lineHeight: 18 },
+  cancelDeleteText: { fontFamily: font.medium, fontSize: font.bodySm, color: C.textSecondary },
+  confirmDeleteAction: { fontFamily: font.bold, fontSize: font.bodySm, color: C.error },
   toggleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   toggleLabel: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
   track: { width: 40, height: 22, borderRadius: 999, backgroundColor: C.border, padding: 2, justifyContent: "center" },

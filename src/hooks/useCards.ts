@@ -1,4 +1,4 @@
-import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 import { db } from "@/src/services/firebase";
@@ -35,5 +35,13 @@ export function useCards(uid: string | null) {
     });
   }
 
-  return { cards, loading, addCard };
+  // Só remove o cartão salvo aqui (token do Asaas, últimos 4, bandeira) — não
+  // desfaz a tokenização do lado do Asaas, o token simplesmente para de ser
+  // oferecido como opção. firestore.rules já libera write (inclui delete) pro
+  // dono do documento (isOwnUser), não precisa passar pelo backend.
+  async function deleteCard(uid: string, cardId: string) {
+    await deleteDoc(doc(db, "users", uid, "cards", cardId));
+  }
+
+  return { cards, loading, addCard, deleteCard };
 }
