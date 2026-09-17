@@ -14,6 +14,31 @@ import type { Order } from "@/src/types";
 
 const CANCELABLE_STATUSES = ["open", "confirmed", "in_progress"];
 
+type PaymentTone = "neutral" | "warning" | "error" | "success";
+
+const PAYMENT_LABELS: Record<string, { label: string; tone: PaymentTone }> = {
+  pending: { label: "Aguardando cobrança", tone: "neutral" },
+  charge_pending: { label: "Cobrança em processamento", tone: "neutral" },
+  charge_success: { label: "Pagamento confirmado", tone: "success" },
+  charge_retry_1: { label: "Não conseguimos cobrar seu cartão — tentando de novo automaticamente", tone: "warning" },
+  charge_retry_2: { label: "Não conseguimos cobrar seu cartão — tentando de novo automaticamente", tone: "warning" },
+  charge_failed: { label: "Cobrança falhou. Atualize o cartão no seu perfil.", tone: "error" },
+  cancelled_no_payment: { label: "Pedido cancelado por falta de pagamento", tone: "error" },
+  refund_pending: { label: "Estorno em processamento", tone: "neutral" },
+  refunded: { label: "Valor estornado", tone: "neutral" },
+  partial_refund: { label: "Valor parcialmente estornado", tone: "neutral" },
+  chargeback_requested: { label: "Contestação de pagamento em análise", tone: "warning" },
+  disputa_aberta: { label: "Pagamento retido até a disputa ser resolvida", tone: "warning" },
+  cancelled_free: { label: "Pedido cancelado sem cobrança", tone: "neutral" },
+};
+
+const PAYMENT_TONE_STYLE: Record<PaymentTone, { bg: string; color: string }> = {
+  neutral: { bg: C.surface, color: C.textSecondary },
+  warning: { bg: C.warningBg, color: C.warningDark },
+  error: { bg: C.errorBg, color: C.error },
+  success: { bg: C.successBg, color: C.successDark },
+};
+
 type Application = {
   application_id: string;
   cleaner_id: string;
@@ -65,12 +90,18 @@ export default function PedidoDetalheScreen() {
   const [loadingApps, setLoadingApps] = useState(true);
   const [showCode, setShowCode] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
     return onSnapshot(doc(db, "orders", id), (snap) => {
       setOrder(snap.exists() ? ({ order_id: snap.id, ...snap.data() } as Order) : null);
     });
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    return onSnapshot(doc(db, "payments", id), (snap) => setPaymentStatus(snap.exists() ? snap.data().status : null));
   }, [id]);
 
   useEffect(() => {
@@ -213,6 +244,20 @@ export default function PedidoDetalheScreen() {
           <Text style={styles.summaryTotal}>R$ {order.pricing.net_total_client.toFixed(2).replace(".", ",")}</Text>
         </View>
 
+        {paymentStatus && PAYMENT_LABELS[paymentStatus] && (
+          <View
+            style={[
+              styles.paymentBadge,
+              { backgroundColor: PAYMENT_TONE_STYLE[PAYMENT_LABELS[paymentStatus].tone].bg },
+            ]}
+          >
+            <Icon name="credit-card" size={16} color={PAYMENT_TONE_STYLE[PAYMENT_LABELS[paymentStatus].tone].color} />
+            <Text style={[styles.paymentBadgeText, { color: PAYMENT_TONE_STYLE[PAYMENT_LABELS[paymentStatus].tone].color }]}>
+              {PAYMENT_LABELS[paymentStatus].label}
+            </Text>
+          </View>
+        )}
+
         {CANCELABLE_STATUSES.includes(order.status) && (
           <Pressable style={styles.cancelLink} onPress={() => setShowCancel(true)}>
             <Text style={styles.cancelLinkText}>Cancelar pedido</Text>
@@ -286,6 +331,8 @@ const styles = StyleSheet.create({
   codeLink: { alignItems: "center", marginTop: space.l },
   codeLinkText: { fontFamily: font.medium, fontSize: font.body, color: C.purplePrimary },
   summaryBox: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.l, gap: space.s, marginTop: space.xl },
+  paymentBadge: { flexDirection: "row", alignItems: "center", gap: space.s, borderRadius: radius.l, padding: space.m, marginTop: space.m },
+  paymentBadgeText: { fontFamily: font.medium, fontSize: font.bodySm, flex: 1, lineHeight: 18 },
   summaryText: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
   summaryTotal: { fontFamily: font.bold, fontSize: font.h3, color: C.textMaximum, marginTop: space.s },
   cancelLink: { alignItems: "center", marginTop: space.xl },
