@@ -1,10 +1,11 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { collection, doc, getDocs, onSnapshot, query, serverTimestamp, setDoc, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Button } from "@/src/components/ui/Button";
 import { Spinner } from "@/src/components/ui/Spinner";
+import { CancelOrderSheet } from "@/src/components/order/CancelOrderSheet";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useUserProfile } from "@/src/hooks/useUserProfile";
 import { db } from "@/src/services/firebase";
@@ -30,6 +31,7 @@ export default function CleanerPedidoDetalheScreen() {
   const [order, setOrder] = useState<Order | null>(null);
   const [alreadyApplied, setAlreadyApplied] = useState(false);
   const [applying, setApplying] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -116,12 +118,26 @@ export default function CleanerPedidoDetalheScreen() {
           <Text style={styles.sub}>{new Date(order.scheduled_at).toLocaleString("pt-BR")}</Text>
           <Text style={styles.sub}>{order.address.street}, {order.address.number} — {order.address.neighborhood}</Text>
           <Text style={styles.confirmedNote}>Serviço confirmado. No dia, confirme sua chegada aqui.</Text>
+
+          <Pressable style={styles.cancelLink} onPress={() => setShowCancel(true)}>
+            <Text style={styles.cancelLinkText}>Não posso mais atender — cancelar</Text>
+          </Pressable>
         </ScrollView>
         <View style={styles.footer}>
           <Button variant="primary" size="large" onPress={() => router.push(`/(cleaner)/pedido/${order.order_id}/chegada`)} style={{ width: "100%" }}>
             Confirmar chegada
           </Button>
         </View>
+
+        <CancelOrderSheet
+          orderId={order.order_id}
+          visible={showCancel}
+          onClose={() => setShowCancel(false)}
+          onCancelled={() => {
+            setShowCancel(false);
+            router.replace("/(cleaner)/agenda");
+          }}
+        />
       </View>
     );
   }
@@ -210,6 +226,8 @@ const styles = StyleSheet.create({
   title: { fontFamily: font.bold, fontSize: font.h2, color: C.textMaximum, lineHeight: 30 },
   sub: { fontFamily: font.regular, fontSize: font.body, color: C.textSecondary, marginTop: space.s },
   confirmedNote: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum, marginTop: space.xl, backgroundColor: C.surface, borderRadius: radius.l, padding: space.l },
+  cancelLink: { alignItems: "center", marginTop: space.xl },
+  cancelLinkText: { fontFamily: font.medium, fontSize: font.body, color: C.error },
   notesBox: { marginTop: space.l, backgroundColor: C.surface, borderRadius: radius.l, padding: space.l },
   notesLabel: { fontFamily: font.medium, fontSize: font.bodySm, color: C.textSecondary, marginBottom: space.xs },
   notesText: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum, lineHeight: 20 },

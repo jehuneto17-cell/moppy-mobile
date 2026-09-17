@@ -7,9 +7,12 @@ import { Avatar } from "@/src/components/ui/Avatar";
 import { Button } from "@/src/components/ui/Button";
 import { Icon } from "@/src/components/ui/Icon";
 import { Spinner } from "@/src/components/ui/Spinner";
+import { CancelOrderSheet } from "@/src/components/order/CancelOrderSheet";
 import { db } from "@/src/services/firebase";
 import { C, font, radius, space } from "@/src/theme";
 import type { Order } from "@/src/types";
+
+const CANCELABLE_STATUSES = ["open", "confirmed", "in_progress"];
 
 type Application = {
   application_id: string;
@@ -61,6 +64,7 @@ export default function PedidoDetalheScreen() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loadingApps, setLoadingApps] = useState(true);
   const [showCode, setShowCode] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -94,7 +98,8 @@ export default function PedidoDetalheScreen() {
 
   if (order.status === "open") {
     return (
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: space.xxl }}>
+      <View style={styles.container}>
+      <ScrollView contentContainerStyle={{ padding: space.xxl }}>
         <Text style={styles.title}>Faxineiras interessadas</Text>
 
         {loadingApps && (
@@ -132,6 +137,21 @@ export default function PedidoDetalheScreen() {
           </View>
         )}
       </ScrollView>
+
+      <Pressable style={styles.cancelLink} onPress={() => setShowCancel(true)}>
+        <Text style={styles.cancelLinkText}>Cancelar pedido</Text>
+      </Pressable>
+
+      <CancelOrderSheet
+        orderId={order.order_id}
+        visible={showCancel}
+        onClose={() => setShowCancel(false)}
+        onCancelled={() => {
+          setShowCancel(false);
+          router.replace("/(client)/home");
+        }}
+      />
+      </View>
     );
   }
 
@@ -192,7 +212,23 @@ export default function PedidoDetalheScreen() {
           <Text style={styles.summaryText}>{new Date(order.scheduled_at).toLocaleString("pt-BR")}</Text>
           <Text style={styles.summaryTotal}>R$ {order.pricing.net_total_client.toFixed(2).replace(".", ",")}</Text>
         </View>
+
+        {CANCELABLE_STATUSES.includes(order.status) && (
+          <Pressable style={styles.cancelLink} onPress={() => setShowCancel(true)}>
+            <Text style={styles.cancelLinkText}>Cancelar pedido</Text>
+          </Pressable>
+        )}
       </ScrollView>
+
+      <CancelOrderSheet
+        orderId={order.order_id}
+        visible={showCancel}
+        onClose={() => setShowCancel(false)}
+        onCancelled={() => {
+          setShowCancel(false);
+          router.replace("/(client)/home");
+        }}
+      />
 
       <Modal visible={showCode} transparent animationType="slide" onRequestClose={() => setShowCode(false)}>
         <View style={styles.modalOverlay}>
@@ -252,6 +288,8 @@ const styles = StyleSheet.create({
   summaryBox: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: radius.l, padding: space.l, gap: space.s, marginTop: space.xl },
   summaryText: { fontFamily: font.regular, fontSize: font.body, color: C.textMaximum },
   summaryTotal: { fontFamily: font.bold, fontSize: font.h3, color: C.textMaximum, marginTop: space.s },
+  cancelLink: { alignItems: "center", marginTop: space.xl },
+  cancelLinkText: { fontFamily: font.medium, fontSize: font.body, color: C.error },
   modalOverlay: { flex: 1, backgroundColor: "#1F2937AA", justifyContent: "flex-end" },
   modalSheet: { backgroundColor: "#fff", borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: space.xxl, alignItems: "center", minHeight: "40%" },
   modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: C.border, marginBottom: space.l },
