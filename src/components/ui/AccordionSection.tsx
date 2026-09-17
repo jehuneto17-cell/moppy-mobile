@@ -1,8 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
-  FadeIn,
-  FadeOut,
   LinearTransition,
   useAnimatedStyle,
   useSharedValue,
@@ -26,12 +24,22 @@ export function AccordionSection({
   children: React.ReactNode;
 }) {
   const rotation = useSharedValue(isOpen ? 180 : 0);
+  const progress = useSharedValue(isOpen ? 1 : 0);
+  const [contentHeight, setContentHeight] = useState(0);
 
   useEffect(() => {
     rotation.value = withTiming(isOpen ? 180 : 0, { duration: 200 });
+    progress.value = withTiming(isOpen ? 1 : 0, { duration: 220 });
   }, [isOpen]);
 
   const chevronStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotation.value}deg` }] }));
+  // Anima altura de verdade (não entra/sai de repente) — mais confiável em
+  // web do que entering/exiting do reanimated, que depende do motor CSS do
+  // navegador e às vezes só troca instantaneamente sem transição.
+  const bodyWrapperStyle = useAnimatedStyle(() => ({
+    height: progress.value * contentHeight,
+    opacity: progress.value,
+  }));
 
   return (
     <Animated.View layout={LinearTransition.duration(220)} style={styles.box}>
@@ -45,11 +53,11 @@ export function AccordionSection({
         </Animated.View>
       </Pressable>
 
-      {isOpen && (
-        <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(120)} style={styles.body}>
+      <Animated.View style={[{ overflow: "hidden" }, bodyWrapperStyle]}>
+        <View style={styles.body} onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}>
           {children}
-        </Animated.View>
-      )}
+        </View>
+      </Animated.View>
     </Animated.View>
   );
 }
