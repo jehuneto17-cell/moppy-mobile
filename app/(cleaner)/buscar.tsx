@@ -105,13 +105,15 @@ export default function CleanerBuscarScreen() {
 
   const filteredOrders = useMemo(() => {
     if (!orders) return orders;
+    const appliedOrderIds = new Set((applications ?? []).map((a) => a.order_id));
     return orders.filter((o) => {
+      if (appliedOrderIds.has(o.order_id)) return false;
       if (selectedTypes.size > 0 && !selectedTypes.has(o.service.type)) return false;
       if (selectedSizes.size > 0 && !selectedSizes.has(o.service.size)) return false;
       if (dateOption && !withinDateOption(o.scheduled_at, dateOption)) return false;
       return true;
     });
-  }, [orders, selectedTypes, selectedSizes, dateOption]);
+  }, [orders, applications, selectedTypes, selectedSizes, dateOption]);
 
   const activeFilterCount = selectedTypes.size + selectedSizes.size + (dateOption ? 1 : 0);
 
