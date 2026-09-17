@@ -13,24 +13,32 @@ export type WalletTransaction = {
 };
 
 export function useWallet(uid: string | null) {
-  const [balance, setBalance] = useState<WalletBalance | null>(null);
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Mesma guarda de useCleanerProfile.ts/useUserProfile.ts: sem isso, quando
+  // uid muda de null pra um valor real, o hook devolve balance/loading do uid
+  // antigo por um render (até o useEffect rodar) — aqui não redireciona
+  // ninguém, mas pisca o estado "sem saldo ainda" por uma fração de segundo.
+  const [state, setState] = useState<{ uid: string | null; balance: WalletBalance | null; transactions: WalletTransaction[]; loading: boolean }>({
+    uid: null,
+    balance: null,
+    transactions: [],
+    loading: true,
+  });
 
   useEffect(() => {
     if (!uid) {
-      setBalance(null);
-      setTransactions([]);
-      setLoading(false);
+      setState({ uid, balance: null, transactions: [], loading: false });
       return;
     }
-    setLoading(true);
+    setState({ uid, balance: null, transactions: [], loading: true });
     const unsubWallet = onSnapshot(doc(db, "wallets", uid), (snap) => {
-      setBalance(snap.exists() ? snap.data().balance : { total: 0, pending_release: 0, available: 0 });
-      setLoading(false);
+      setState((s) => ({
+        ...s,
+        balance: snap.exists() ? snap.data().balance : { total: 0, pending_release: 0, available: 0 },
+        loading: false,
+      }));
     });
     const unsubTx = onSnapshot(query(collection(db, "wallets", uid, "transactions"), orderBy("timestamp", "desc")), (snap) => {
-      setTransactions(snap.docs.map((d) => ({ transaction_id: d.id, ...d.data() } as WalletTransaction)));
+      setState((s) => ({ ...s, transactions: snap.docs.map((d) => ({ transaction_id: d.id, ...d.data() } as WalletTransaction)) }));
     });
     return () => {
       unsubWallet();
@@ -38,5 +46,6 @@ export function useWallet(uid: string | null) {
     };
   }, [uid]);
 
-  return { balance, transactions, loading };
+  const stale = state.uid !== uid;
+  return { balance: stale ? null : state.balance, transactions: stale ? [] : state.transactions, loading: stale || state.loading };
 }
