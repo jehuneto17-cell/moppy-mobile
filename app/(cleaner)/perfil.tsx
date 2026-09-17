@@ -218,7 +218,9 @@ export default function CleanerPerfilScreen() {
                   <Pressable onPress={() => router.push("/(cleaner)/historico")}>
                     <Text style={styles.linkText}>Histórico de Serviços</Text>
                   </Pressable>
-                  <Text style={styles.linkText}>Termos</Text>
+                  <Pressable onPress={() => router.push("/(cleaner)/termos-uso")}>
+                    <Text style={styles.linkText}>Termos</Text>
+                  </Pressable>
                 </>
               )}
             </AccordionSection>

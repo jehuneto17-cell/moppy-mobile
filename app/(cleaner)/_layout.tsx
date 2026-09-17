@@ -44,6 +44,7 @@ export default function CleanerTabsLayout() {
       <Tabs.Screen name="candidatura-resultado" options={{ href: null }} />
       <Tabs.Screen name="solicitar-saque" options={{ href: null }} />
       <Tabs.Screen name="historico" options={{ href: null }} />
+      <Tabs.Screen name="termos-uso" options={{ href: null }} />
     </Tabs>
   );
 }
