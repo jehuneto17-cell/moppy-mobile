@@ -36,9 +36,12 @@ export default function AbrirDisputaScreen() {
     if (result.canceled) return;
 
     setUploadingSlot(slot);
+    setError(null);
     try {
       const { url } = await uploadImage(`disputes/${id}`, result.assets[0].uri);
       setPhotos((prev) => [...prev, url]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao enviar a foto. Tente de novo.");
     } finally {
       setUploadingSlot(null);
     }
