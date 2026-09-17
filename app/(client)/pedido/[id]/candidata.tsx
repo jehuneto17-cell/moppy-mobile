@@ -9,6 +9,7 @@ import { Rating } from "@/src/components/ui/Rating";
 import { Spinner } from "@/src/components/ui/Spinner";
 import { auth, db } from "@/src/services/firebase";
 import { C, font, radius, space } from "@/src/theme";
+import { notify } from "@/src/utils/alert";
 
 type Application = { cleaner_id: string; cleaner_name: string; cleaner_rating: number; cleaner_distance_km: number };
 type Review = { review_id: string; comment: string; stars: number; from_name?: string };
@@ -66,15 +67,32 @@ export default function CandidataScreen() {
 
     // Se faltar menos de 24h pro serviço, o cron D-1 não vai passar a tempo — cobra
     // agora (o endpoint decide; sem isso o pedido chegaria ao dia sem cobrança).
+    // A resposta é checada: se a cobrança falhar (cartão recusado, etc.), o pedido
+    // já ficou "confirmed" mesmo assim (faxineira já foi travada) — sem avisar o
+    // cliente na hora, ele só ia descobrir horas depois (retry) ou nunca, já que
+    // nenhuma notificação existe pra esse evento.
     const idToken = await auth.currentUser?.getIdToken();
+    let chargeFailed = false;
     if (idToken) {
-      await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/orders/${id}/charge`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${idToken}` },
-      }).catch(() => {});
+      try {
+        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/orders/${id}/charge`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+        const data = await res.json().catch(() => null);
+        chargeFailed = !res.ok || data?.outcome === "failed" || data?.outcome === "retry_scheduled";
+      } catch {
+        chargeFailed = true;
+      }
     }
 
     setChoosing(false);
+    if (chargeFailed) {
+      notify(
+        "Cobrança pendente",
+        "Não conseguimos cobrar seu cartão agora. Vamos tentar de novo automaticamente — verifique os dados do cartão no seu perfil pra garantir que o pedido não seja cancelado."
+      );
+    }
     router.replace(`/(client)/pedido/${id}`);
   }
 
