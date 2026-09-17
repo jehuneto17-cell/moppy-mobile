@@ -31,6 +31,14 @@ const SECTIONS: { id: SectionId; title: string; icon: IconName }[] = [
 
 const RADIUS_OPTIONS = [5, 10, 15, 20];
 
+const PIX_KEY_TYPES = [
+  { key: "cpf", label: "CPF" },
+  { key: "email", label: "E-mail" },
+  { key: "phone", label: "Telefone" },
+  { key: "random", label: "Aleatória" },
+] as const;
+type PixKeyType = (typeof PIX_KEY_TYPES)[number]["key"];
+
 const DOC_LABELS: Record<string, string> = {
   id_document: "RG",
   cpf_document: "CPF",
@@ -56,6 +64,9 @@ export default function CleanerPerfilScreen() {
   const [name, setName] = useState(profile?.name ?? "");
   const [phone, setPhone] = useState((profile as any)?.phone ?? "");
   const [pixKey, setPixKey] = useState(cleanerProfile?.pix?.key_value ?? "");
+  const [pixKeyType, setPixKeyType] = useState<PixKeyType>(
+    (PIX_KEY_TYPES.find((t) => t.key === cleanerProfile?.pix?.key_type)?.key as PixKeyType) ?? "cpf"
+  );
   const [saving, setSaving] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(false);
@@ -72,6 +83,9 @@ export default function CleanerPerfilScreen() {
   useEffect(() => {
     if (!cleanerProfile) return;
     setPixKey(cleanerProfile.pix?.key_value ?? "");
+    if (PIX_KEY_TYPES.some((t) => t.key === cleanerProfile.pix?.key_type)) {
+      setPixKeyType(cleanerProfile.pix!.key_type as PixKeyType);
+    }
   }, [cleanerProfile]);
 
   async function handleSavePersonal() {
@@ -92,7 +106,7 @@ export default function CleanerPerfilScreen() {
   async function handleSavePix() {
     if (!user) return;
     setSaving(true);
-    await setDoc(doc(db, "cleaners", user.uid), { pix: { key_type: "auto", key_value: pixKey }, updated_at: serverTimestamp() }, { merge: true });
+    await setDoc(doc(db, "cleaners", user.uid), { pix: { key_type: pixKeyType, key_value: pixKey }, updated_at: serverTimestamp() }, { merge: true });
     setSaving(false);
   }
 
@@ -168,6 +182,17 @@ export default function CleanerPerfilScreen() {
 
               {section.id === "pix" && (
                 <>
+                  <Text style={styles.radiusText}>Tipo de chave</Text>
+                  <View style={{ flexDirection: "row", gap: space.s }}>
+                    {PIX_KEY_TYPES.map((t) => {
+                      const active = pixKeyType === t.key;
+                      return (
+                        <Pressable key={t.key} onPress={() => setPixKeyType(t.key)} style={[styles.radiusChip, active && styles.radiusChipActive]}>
+                          <Text style={[styles.radiusChipText, active && { color: C.purplePrimary }]}>{t.label}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
                   <LabeledInput label="Chave PIX" value={pixKey} onChangeText={setPixKey} />
                   <Button variant="primary" loading={saving} onPress={handleSavePix}>
                     Salvar
